@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CPC1 Hà Nội — Nhân sự Dashboard</title>
+<!-- Cho phép nhân viên "Thêm vào màn hình chính" để mở như 1 app riêng (không cần tải qua App Store/Play
+     Store). Icon (icon-192.png / icon-512.png) và Web App Manifest (manifest.json) là CÁC FILE THẬT, phải
+     upload cùng thư mục với file index.html này lên GitHub Pages thì icon mới hiện đúng — nhiều trình
+     duyệt không chấp nhận icon/manifest nhúng dạng "data:" URI khi "Thêm vào màn hình chính". -->
+<meta name="theme-color" content="#0a0f1c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CPC1 Dashboard">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -117,8 +129,59 @@
   }
   .user-name{ font-size:12.5px; font-weight:700; color:#fff; }
   .user-role{ font-size:11px; color:var(--muted); }
+  .user-chip{ cursor:pointer; }
+  .user-chip:hover .user-name{ text-decoration:underline; }
+  .user-chip-logout-hint{ font-size:10px; color:var(--muted); }
 
   .content-scroll{ padding:22px 26px 60px; }
+
+  /* ===== login overlay ===== */
+  #loginOverlay{
+    position:fixed; inset:0; z-index:9999; background:radial-gradient(circle at 30% 20%, #16213a 0%, var(--bg) 60%);
+    display:flex; align-items:center; justify-content:center; padding:30px;
+  }
+  #loginOverlay.hidden{ display:none; }
+  .login-box{
+    width:100%; max-width:760px; background:var(--panel); border:1px solid var(--border); border-radius:18px;
+    padding:32px 30px; box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .login-head{ text-align:center; margin-bottom:22px; }
+  .login-head .login-logo{ width:48px; height:48px; border-radius:12px; background:#fff; padding:5px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; }
+  .login-head .login-logo img{ width:100%; height:100%; object-fit:contain; }
+  .login-title{ font-size:18px; font-weight:800; color:#fff; }
+  .login-sub{ font-size:12.5px; color:var(--muted); margin-top:4px; }
+  .login-loading{ text-align:center; color:var(--muted); font-size:13px; padding:30px 0; }
+  .login-search{ margin-bottom:16px; }
+  .login-search input{
+    width:100%; background:#151d31; border:1px solid var(--border); border-radius:8px; padding:9px 12px;
+    font-size:13px; color:#fff;
+  }
+  .login-search input::placeholder{ color:#5c6684; }
+  .login-tiles{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px;
+    max-height:340px; overflow-y:auto; padding-right:4px;
+  }
+  .login-tile{
+    background:#151d31; border:1px solid var(--border); border-radius:12px; padding:14px 10px;
+    text-align:center; cursor:pointer; transition:border-color .12s ease, background .12s ease;
+  }
+  .login-tile:hover{ border-color:var(--blue); background:#1a2540; }
+  .login-tile .avatar{ margin:0 auto 8px; }
+  .login-tile-name{ font-size:12.5px; font-weight:700; color:#fff; line-height:1.25; }
+  .login-tile-role{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .login-tile-empty{ grid-column:1/-1; text-align:center; color:var(--muted); font-size:13px; padding:20px 0; }
+  .login-pass-step{ text-align:center; }
+  .login-pass-step .avatar{ width:56px;height:56px;font-size:18px; margin:0 auto 12px; }
+  .login-pass-name{ font-size:16px; font-weight:800; color:#fff; margin-bottom:2px; }
+  .login-pass-role{ font-size:12px; color:var(--muted); margin-bottom:18px; }
+  .login-pass-form{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .login-pass-form input{
+    width:220px; text-align:center; letter-spacing:2px; font-size:15px; background:#151d31;
+    border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:#fff;
+  }
+  .login-pass-error{ color:var(--red); font-size:12px; min-height:16px; }
+  .login-pass-actions{ display:flex; gap:8px; margin-top:4px; }
+  .login-back{ background:#151d31; color:#fff; border:1px solid var(--border); border-radius:8px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; }
 
   .page-h1{ font-size:22px; font-weight:800; color:#fff; margin:2px 0 6px; }
   .page-h1 .accent{ color:var(--green); }
@@ -191,6 +254,9 @@
   /* ===== KPI cards ===== */
   .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
   @media (max-width:1000px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+  /* #kpiGrid (trang Tổng quan) có thể có thêm thẻ "Doanh số sau hệ số" thứ 5 khi có dữ liệu hệ số — dùng
+     auto-fit để tự co giãn thành 4 hoặc 5 cột tuỳ số thẻ thực tế, không cần đếm cứng số lượng. */
+  #kpiGrid{ grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
   .kpi-card{ background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px; }
   .kpi-icon{ width:34px;height:34px;border-radius:9px; display:flex;align-items:center;justify-content:center; font-size:16px; margin-bottom:12px; }
   .kpi-icon.blue{ background:rgba(59,130,246,.15); color:#60a5fa; }
@@ -341,6 +407,34 @@
 </head>
 <body>
 
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-head">
+      <div class="login-logo"><img src="data:image/png;base64,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" alt="CPC1HN"></div>
+      <div class="login-title">CPC1 Hà Nội — Đăng nhập Dashboard</div>
+      <div class="login-sub" id="loginSub">Chọn tên của bạn để đăng nhập</div>
+    </div>
+    <div id="loginLoading" class="login-loading">Đang tải danh sách nhân viên…</div>
+    <div id="loginTilesStep" style="display:none;">
+      <div class="login-search"><input type="text" id="loginSearchInput" placeholder="Tìm tên của bạn..."></div>
+      <div class="login-tiles" id="loginTiles"></div>
+    </div>
+    <div id="loginPassStep" class="login-pass-step" style="display:none;">
+      <div class="avatar" id="loginPassAvatar"></div>
+      <div class="login-pass-name" id="loginPassName"></div>
+      <div class="login-pass-role" id="loginPassRole"></div>
+      <form class="login-pass-form" id="loginPassForm">
+        <input type="password" id="loginPassInput" placeholder="Mã nhân viên" autocomplete="off">
+        <div class="login-pass-error" id="loginPassError"></div>
+        <div class="login-pass-actions">
+          <button type="button" class="login-back" id="loginBackBtn">← Chọn lại tên</button>
+          <button type="submit" class="btn-upload">Đăng nhập</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="toast-stack" id="toastStack"></div>
 
 <div class="app-shell">
@@ -412,11 +506,11 @@
             <div id="bellDropdownBody"><div class="bell-empty">Không có ai khẩn cấp</div></div>
           </div>
         </div>
-        <div class="user-chip">
-          <div class="avatar">AT</div>
+        <div class="user-chip" id="userChip" title="Bấm để đăng xuất">
+          <div class="avatar" id="userChipAvatar">AT</div>
           <div>
-            <div class="user-name">Anh Tuấn CPC1</div>
-            <div class="user-role">Quản trị</div>
+            <div class="user-name" id="userChipName">Anh Tuấn CPC1</div>
+            <div class="user-role" id="userChipRole">Quản trị</div>
           </div>
         </div>
       </div>
@@ -556,7 +650,7 @@
 
         <div class="panel">
           <h3 class="section-title">👥 Hiệu suất theo nhân viên <span class="badge" id="empPeriodBadge"></span></h3>
-          <div class="legend-note">Doanh thu, đơn hàng, lượt thăm khách và số khách hàng đã ghé thăm so với định mức 15 KH/ngày</div>
+          <div class="legend-note">Doanh thu, đơn hàng, lượt thăm khách và số khách hàng đã ghé thăm so với định mức 15 KH/ngày · cột "Doanh số sau hệ số" là doanh số Kế toán luỹ kế tháng đã nhân theo hệ số sản phẩm</div>
           <div class="tablewrap">
             <table id="empTable">
               <thead>
@@ -566,7 +660,7 @@
                   <th>Đơn</th>
                   <th>Lượt thăm</th>
                   <th>KH ghé thăm / Định mức</th>
-                  <th>Lũy kế tháng</th>
+                  <th>Doanh số sau hệ số</th>
                   <th>Chỉ tiêu tháng</th>
                   <th>% hoàn thành</th>
                 </tr>
@@ -661,6 +755,28 @@
           <div class="status-line" id="kpiSheetStatus"></div>
         </div>
 
+        <div class="panel">
+          <div class="panel-title-row">
+            <span class="tag-pill">HỆ SỐ</span>
+            <span class="panel-title">Google Sheet Bảng hệ số sản phẩm</span>
+          </div>
+          <div class="controls">
+            <div class="field">
+              <label>Link / ID Google Sheet Bảng hệ số (kèm gid của đúng tab)</label>
+              <input type="text" id="heSoSheetUrl" value="https://docs.google.com/spreadsheets/d/1GMQ0OpSuOUMxOpgyz3EDHAoNQ6p0W6Ur/edit?gid=1599971324#gid=1599971324">
+            </div>
+            <button class="btn-upload" id="btnLoadHeSoSheet">Tải hệ số</button>
+            <button class="btn-secondary" id="btnRefreshHeSoSheet">↻ Làm mới</button>
+          </div>
+          <div class="hint">
+            Ghép mã sản phẩm ở cột <b>"Mã SP (Đơn kế toán)"</b> với hệ số ở cột <b>"→ Hệ số sản phẩm"</b>. Dùng để tính thêm
+            dòng <b>"Doanh số sau hệ số"</b> ở trang Tổng quan = doanh số Đơn Kế Toán từng dòng sản phẩm nhân với đúng hệ số
+            của sản phẩm đó rồi cộng lại — không thay đổi số "Tổng doanh số team" hiện có, chỉ hiển thị thêm để tham khảo.
+            Sản phẩm chưa xác định hệ số (quà tặng, hàng mới...) sẽ mặc định hệ số = 1.
+          </div>
+          <div class="status-line" id="heSoSheetStatus"></div>
+        </div>
+
         <div class="kpi-grid" id="kpiSummaryCards" style="grid-template-columns:repeat(4,1fr);"></div>
 
         <div class="panel">
@@ -681,30 +797,26 @@
         <div class="page-h1">Theo dõi <span class="accent">Đơn hàng</span></div>
         <div class="page-sub" id="donhangSub"></div>
 
+        <div class="source-tabs" id="donhangSourceTabs" style="margin-bottom:14px;">
+          <button data-src="sotay">📝 Đơn Sổ tay (có trạng thái)</button>
+          <button data-src="ketoan" class="active">🧾 Đơn Kế Toán (đã xuất hoá đơn)</button>
+        </div>
+
         <div class="kpi-grid" id="donhangSummaryCards" style="grid-template-columns:repeat(4,1fr);"></div>
 
         <div class="split-row">
           <div class="panel">
-            <h3 class="section-title">👤 Đơn hàng theo nhân viên &amp; trạng thái</h3>
+            <h3 class="section-title" id="donhangEmpTableTitle">👤 Đơn hàng theo nhân viên &amp; trạng thái</h3>
             <div class="legend-note">Kỳ đang xem theo bộ lọc ngày/tuần/tháng ở trên (mặc định tháng hiện tại).</div>
             <div class="tablewrap">
               <table id="donhangEmpTable">
-                <thead>
-                  <tr>
-                    <th class="left">Nhân viên</th>
-                    <th>Tổng đơn</th>
-                    <th>Hoàn thành</th>
-                    <th>Đang xử lý</th>
-                    <th>Cần chú ý</th>
-                    <th>Doanh thu</th>
-                  </tr>
-                </thead>
+                <thead></thead>
                 <tbody></tbody>
               </table>
             </div>
           </div>
           <div class="panel">
-            <h3 class="section-title">🥯 Tỉ lệ theo trạng thái</h3>
+            <h3 class="section-title" id="donhangChartTitle">🥯 Tỉ lệ theo trạng thái</h3>
             <div class="chart-box" id="donhangStatusChartBox" style="height:260px;"></div>
           </div>
         </div>
@@ -715,24 +827,14 @@
             <span class="badge" id="donhangTableBadge"></span>
           </h3>
           <div class="controls" style="margin-bottom:12px;">
-            <div class="field">
-              <label>Lọc theo trạng thái</label>
+            <div class="field" id="donhangFilterField">
+              <label id="donhangFilterLabel">Lọc theo trạng thái</label>
               <select id="donhangStatusFilter"><option value="">Tất cả trạng thái</option></select>
             </div>
           </div>
           <div class="tablewrap">
             <table id="donhangTable">
-              <thead>
-                <tr>
-                  <th class="left">Mã đơn</th>
-                  <th>Ngày đặt</th>
-                  <th class="left">Nhân viên</th>
-                  <th class="left">Khách hàng</th>
-                  <th>Số SP</th>
-                  <th>Thành tiền</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
+              <thead></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -922,6 +1024,25 @@
         </div>
 
         <div class="panel">
+          <div class="panel-title-row">
+            <span class="tag-pill">ASM</span>
+            <span class="panel-title">Báo cáo tổng hợp team — gửi cho ASM</span>
+          </div>
+          <div class="controls">
+            <div class="field">
+              <label>Tên ASM (đúng như tên đã thêm vào Google Sheet Email ở trên)</label>
+              <input type="text" id="asmName" value="Hoàng Thị Mỹ Linh">
+            </div>
+            <button class="btn-secondary" id="btnRefreshTeamReport">↻ Làm mới</button>
+          </div>
+          <div class="hint">
+            Tự tổng hợp số liệu toàn team theo kỳ đang chọn ở trên, ghép email ASM từ Google Sheet Email nhân viên (mục
+            phía trên), rồi mở khung soạn thư Roundcube với người nhận/tiêu đề/nội dung đã điền sẵn.
+          </div>
+          <div id="teamReportBox"></div>
+        </div>
+
+        <div class="panel">
           <h3 class="section-title" style="justify-content:space-between;">
             <span>🗂️ Báo cáo theo từng nhân viên</span>
             <span class="badge" id="baocaoBadge"></span>
@@ -1025,6 +1146,35 @@
   const tabCache = {}; // sheetId|tabName -> rows
 
   const TARGET_KEY = 'salesDashboard.targets.v1';
+
+  // ---------- đăng nhập theo từng người ----------
+  // currentUser: null (chưa đăng nhập) | {name, maNV, viTri, isManager}
+  let currentUser = null;
+  const CURRENT_USER_KEY = 'salesDashboard.currentUserName';
+  function isManagerViTri(viTri){
+    return (viTri||'').toString().trim().toUpperCase() === 'SS';
+  }
+  // Sau khi tải lại dữ liệu (orders/calls/routes/soTayOrders/allEmployeeNames), nếu người đang đăng nhập
+  // KHÔNG phải quản lý (SS) thì lọc mọi mảng dữ liệu toàn cục xuống chỉ còn đúng 1 người đó — nhờ vậy toàn
+  // bộ các trang (vốn đã lặp qua allEmployeeNames một cách chung) tự động chỉ hiển thị dữ liệu của họ mà
+  // không cần sửa riêng từng trang.
+  function applyUserScopeIfNeeded(){
+    if(!currentUser || currentUser.isManager) return;
+    const key = normalizeName(currentUser.name);
+    orders = (orders||[]).filter(o => normalizeName(o.name) === key);
+    calls = (calls||[]).filter(c => normalizeName(c.name) === key);
+    routes = (routes||[]).filter(r => normalizeName(r.name) === key);
+    soTayOrders = (typeof soTayOrders !== 'undefined' ? soTayOrders : []).filter(o => normalizeName(o.name) === key);
+    allEmployeeNames = (allEmployeeNames||[]).filter(n => normalizeName(n) === key);
+  }
+  // Dùng cho các trang/khối tự tải dữ liệu RIÊNG (không đi qua orders/calls toàn cục ở trên) — ví dụ trang
+  // Khách hàng và AI Sales Coach tự fetch lại "Đơn Kế Toán" từ Google Sheet, hoặc trang KPI liệt kê trực
+  // tiếp từ kpiDetailRows — cần lọc lại theo đúng người đang đăng nhập (nếu không phải quản lý SS) trước khi hiển thị.
+  function scopeToCurrentUser(list, nameFn){
+    if(!currentUser || currentUser.isManager) return list;
+    const key = normalizeName(currentUser.name);
+    return (list||[]).filter(x => normalizeName(nameFn(x)) === key);
+  }
 
   // ---------- generic helpers ----------
   function pad(n){ return n<10 ? '0'+n : ''+n; }
@@ -1362,6 +1512,7 @@
     calls = newCalls.filter(c => !isExcludedName(c.name));
     routes = []; // Excel export chuẩn không có dữ liệu Cung tuyến
     allEmployeeNames = dedupeNames([...nvNames, ...orders.map(o=>o.name), ...calls.map(c=>c.name)]).filter(n => !isExcludedName(n));
+    applyUserScopeIfNeeded();
     dataSource = 'excel';
     dimLabel = 'kênh bán';
     document.getElementById('dimLabel').textContent = dimLabel;
@@ -1560,8 +1711,9 @@
   // nên cần cảnh báo để người dùng bổ sung ngày trong Google Sheet thay vì âm thầm mất doanh số.
   function collectMissingDateIssues(rows){
     const map = {};
+    const nameIdx = detectOrderLayout(rows) === 'old' ? 21 : 20; // xem ghi chú tự dò cấu trúc cột tại mapOrderRowsGSheet
     for(const r of rows){
-      const name = (r[21]||'').toString().trim();
+      const name = (r[nameIdx]||'').toString().trim();
       if(!name) continue;
       if(!parseVNDate(r[2])) map[name] = (map[name]||0) + 1;
     }
@@ -1579,21 +1731,58 @@
     el.style.display = 'block';
   }
 
+  // SỬA (26/09/2026): phát hiện thực tế — kế toán đã đổi định dạng file xuất (thêm nhiều cột mới như
+  // Mã ASM/Tên ASM/Tên đồng bộ SP...) khiến CẤU TRÚC CỘT của tab "Đơn Kế Toán MM/YY" (dán y nguyên từ file
+  // kế toán gửi, không chỉnh sửa cột) bị dịch chuyển so với lúc code này viết ban đầu. Nếu hardcode cứng
+  // 1 kiểu cột duy nhất, mỗi lần kế toán đổi định dạng (hoặc tháng cũ còn theo định dạng cũ, tháng mới đã
+  // theo định dạng mới) sẽ lại đọc sai cột — hậu quả từng thấy: sai tên/mã sản phẩm (ngày 26/09) rồi đến
+  // toàn bộ KPI về 0 (do tên nhân viên đọc sai cột nên không khớp được với Trang tính2). Để không phải sửa
+  // tay mỗi lần định dạng đổi, TỰ DÒ 1 trong 2 kiểu cấu trúc đã biết dựa trên: ô nào trong 2 vị trí ứng
+  // viên chứa văn bản GIỐNG TÊN NGƯỜI (có dấu cách, không phải toàn số/mã) — không phải mã nhân viên (mã
+  // ngắn, không dấu cách).
+  //   Kiểu CŨ  (trước đây): 1 Số ct, 3 Mã KH, 4 Tên khách, 6 Tỉnh/TP, 7 Mã hàng, 8 Tên mặt hàng,
+  //                          9 Số lượng, 12 Doanh số, 20 Mã NV, 21 Tên NV.
+  //   Kiểu MỚI (từ file kế toán gửi 25/9/2026, đối chiếu trực tiếp với "Data 25.9.xlsx"):
+  //                          3 Số ct, 0 Mã KH, 1 Tên khách, 14 Tỉnh, 4 Mã hàng, 5 Tên mặt hàng,
+  //                          7 Số lượng, 12 Doanh số, 19 Mã NV, 20 Tên NV.
+  //   Cả 2 kiểu đều trùng ở cột "Ngày ct" (2) và "Doanh số trước Vat sau hệ số" (12, dùng làm doanh số/rev).
+  function isPersonNameCell(v){
+    const s = (v||'').toString().trim();
+    if(s.length < 3) return false;
+    if(/^[\d.,%\s-]+$/.test(s)) return false; // toàn số/ký hiệu -> không phải tên người
+    return s.indexOf(' ') > -1; // tên người luôn có ít nhất 1 dấu cách (họ + tên)
+  }
+  function detectOrderLayout(rows){
+    for(const r of (rows||[])){
+      const newNameCell = r[20], oldNameCell = r[21];
+      const newIsName = isPersonNameCell(newNameCell);
+      const oldIsName = isPersonNameCell(oldNameCell);
+      if(newIsName && !oldIsName) return 'new';
+      if(oldIsName && !newIsName) return 'old';
+      if(newIsName && oldIsName) continue; // cả 2 đều giống tên (hiếm) — thử dòng khác cho chắc
+    }
+    return 'new'; // mặc định theo định dạng kế toán đang gửi hiện tại (25/9/2026) nếu không dò được rõ ràng
+  }
+  const ORDER_LAYOUTS = {
+    old: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:21 },
+    new: { orderId:3, khCode:0, khName:1, prodCode:4, prodName:5, qty:7, dim:14, empCode:19, name:20 }
+  };
   function mapOrderRowsGSheet(rows){
+    const L = ORDER_LAYOUTS[detectOrderLayout(rows)];
     return rows.map(r => {
-      const qty = parseVNNum(r[9]);
-      const rev = parseVNNum(r[12]); // "Thành tiền"
+      const qty = parseVNNum(r[L.qty]);
+      const rev = parseVNNum(r[12]); // "Doanh số trước Vat sau hệ số" — doanh số đã áp Hệ số, giống nhau ở cả 2 kiểu cột
       return {
-        name: (r[21]||'').toString().trim(),
-        orderId: r[1],
-        khCode: r[3],
-        khName: (r[4]||'').toString().trim(),   // Tên Tổ chức (khách hàng)
+        name: (r[L.name]||'').toString().trim(),
+        orderId: r[L.orderId],
+        khCode: r[L.khCode],
+        khName: (r[L.khName]||'').toString().trim(),
         date: parseVNDate(r[2]),
-        prodCode: r[7],
-        prodName: r[8],
+        prodCode: r[L.prodCode],
+        prodName: r[L.prodName],
         qty, rev,
-        dim: (r[6]||'Khác').toString().trim(),   // Tỉnh/TP
-        empCode: (r[20]||'').toString().trim()   // Mã nhân viên
+        dim: (r[L.dim]||'Khác').toString().trim(),
+        empCode: (r[L.empCode]||'').toString().trim()
       };
     }).filter(x => x.name && x.date);
   }
@@ -1650,6 +1839,143 @@
     if(s.includes('chinh sua')) return { label: 'Đã chỉnh sửa', cls: 'na' };
     return { label: raw, cls: 'na' };
   }
+
+  // ================= DOANH SỐ THEO ĐƠN SỔ TAY (song song với Đơn Kế Toán, KHÔNG cộng gộp) =================
+  // Theo yêu cầu: hiển thị "doanh số tính theo Sổ tay" và "doanh số tính theo Kế toán" cạnh nhau để so sánh,
+  // không cộng dồn 2 nguồn (tránh đếm trùng vì đơn sổ tay đã hoàn thành có thể đã được kế toán xuất hoá đơn
+  // và xuất hiện lại bên "Đơn Kế Toán"). Đơn ở trạng thái Huỷ/Từ chối không tính là doanh số ở cả 2 cách.
+  function isSoTayCancelled(status){
+    const s = normalizeProdText((status||'').toString());
+    return s.includes('huy') || s.includes('tu choi');
+  }
+  // Bảng hệ số sản phẩm: "rev" của Đơn Kế Toán lấy từ cột "Doanh số trước Vat SAU HỆ SỐ" nên kế toán đã tự
+  // áp hệ số sẵn; còn "Thành tiền" của Đơn Sổ tay là số thô (qty*đơn giá), CHƯA áp hệ số — phải nhân thêm ở
+  // đây theo đúng mã sản phẩm của từng dòng thì "doanh số sau hệ số" của Sổ tay mới so sánh ngang hàng được
+  // với Kế toán. Sản phẩm chưa xác định hệ số (quà tặng, hàng mới...) mặc định hệ số = 1 (không tăng/giảm).
+  let heSoByProdCode = {}; // { 'TH08048': 0.7, ... } khớp theo "Mã SP (Đơn kế toán)"
+  function heSoFor(prodCode){
+    const code = (prodCode||'').toString().trim().toUpperCase();
+    return (code && heSoByProdCode[code]) ? heSoByProdCode[code] : 1;
+  }
+  function soTayRevInRange(start, end, name){
+    const list = (typeof soTayOrders !== 'undefined' ? soTayOrders : []);
+    return list
+      .filter(o => inRange(o.date, start, end) && !isSoTayCancelled(o.status) && (!name || normalizeName(o.name)===normalizeName(name)))
+      .reduce((s,o)=>s+o.rev, 0);
+  }
+  // Doanh số Sổ tay của 1 nhân viên trong tháng — áp dụng cùng quy tắc như KPI Kế toán: nếu là SS thì lấy
+  // luôn tổng của cả team/khu vực (không cộng dồn riêng lẻ), nếu không thì chỉ lấy đúng đơn của người đó.
+  function empSoTayRevForMonth(name, mStart, mEnd){
+    const kpiRows = (typeof kpiDetailRows !== 'undefined' ? kpiDetailRows : []);
+    const myRow = kpiRows.find(r => normalizeName(r.name)===normalizeName(name));
+    const posNorm = myRow && myRow.viTri ? myRow.viTri.trim().toUpperCase() : '';
+    const list = (typeof soTayOrders !== 'undefined' ? soTayOrders : [])
+      .filter(o => inRange(o.date, mStart, mEnd) && !isSoTayCancelled(o.status));
+    if(posNorm === 'SS'){
+      const teamNames = kpiRows.filter(r => !myRow.khuVuc || r.khuVuc === myRow.khuVuc).map(r=>r.name);
+      return list.filter(o => teamNames.some(n=>normalizeName(n)===normalizeName(o.name))).reduce((s,o)=>s+o.rev, 0);
+    }
+    return list.filter(o => normalizeName(o.name)===normalizeName(name)).reduce((s,o)=>s+o.rev, 0);
+  }
+  // Doanh số Đơn Kế Toán SAU KHI áp thêm Bảng hệ số sản phẩm (khác với cột "rev" gốc — chỉ dùng riêng cho
+  // dòng "Doanh số sau hệ số" hiển thị thêm, KHÔNG thay đổi "Tổng doanh số team"/số liệu Kế toán hiện có).
+  function keToanRevHeSoInRange(start, end, name){
+    const list = (typeof orders !== 'undefined' ? orders : []);
+    return list
+      .filter(o => inRange(o.date, start, end) && (!name || normalizeName(o.name)===normalizeName(name)))
+      .reduce((s,o)=>s+o.rev*heSoFor(o.prodCode), 0);
+  }
+  function soTayDataAvailable(){
+    return dataSource === 'gsheet' && typeof soTayOrders !== 'undefined' && soTayOrders.length > 0;
+  }
+  function heSoDataAvailable(){
+    return Object.keys(heSoByProdCode).length > 0;
+  }
+
+  // ---------- tải Bảng hệ số sản phẩm (Google Sheet riêng, lấy theo gid của đúng tab) ----------
+  const HESO_LAST_URL_KEY = 'salesDashboard.lastHeSoSheetUrl';
+  function extractGid(url){
+    const m = (url||'').match(/[?#&]gid=(\d+)/);
+    return m ? m[1] : '0';
+  }
+  // Giống fetchTabJSONP nhưng lấy theo gid (số hiệu tab) thay vì tên tab — dùng cho bảng hệ số vì tên tab
+  // thật của file này có thể khác nhau, trong khi gid trên đường link luôn xác định đúng tab người dùng đưa.
+  function fetchSheetByGidJSONP(sheetId, gid){
+    return new Promise((resolve, reject) => {
+      const cbName = 'gsheetCb_' + Math.random().toString(36).slice(2);
+      const tqxParam = 'tqx=' + 'out:json' + ';' + 'response' + 'Handler' + ':';
+      const url = GSHEET_BASE + sheetId + '/gviz/tq?' + tqxParam + cbName + '&gid=' + encodeURIComponent(gid);
+      let done = false;
+      const script = document.createElement('script');
+      function cleanup(){ delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); clearTimeout(timer); }
+      const timer = setTimeout(() => {
+        if(done) return; done = true; cleanup();
+        reject(new Error('Hết thời gian chờ Bảng hệ số sản phẩm.'));
+      }, 15000);
+      window[cbName] = function(resp){
+        if(done) return; done = true; cleanup();
+        if(!resp || resp.status === 'error'){
+          reject(new Error((resp && resp.errors && resp.errors[0] && resp.errors[0].detailed_message) || 'Không tải được Bảng hệ số sản phẩm.'));
+          return;
+        }
+        const rows = (resp.table.rows || []).map(r => r.c.map(cell => {
+          if(!cell) return null;
+          if(typeof cell.v === 'number') return cell.v;
+          return (cell.f !== undefined && cell.f !== null) ? cell.f : cell.v;
+        }));
+        resolve(rows);
+      };
+      script.onerror = function(){ if(done) return; done = true; cleanup(); reject(new Error('Không tải được Bảng hệ số sản phẩm (lỗi mạng).')); };
+      script.src = url;
+      document.body.appendChild(script);
+    });
+  }
+  function setHeSoStatus(msg, cls){
+    const el = document.getElementById('heSoSheetStatus');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 'status-line' + (cls ? ' '+cls : '');
+  }
+  async function loadHeSoSheet(forceRefresh){
+    const urlVal = document.getElementById('heSoSheetUrl').value;
+    const sheetId = extractSheetId(urlVal);
+    const gid = extractGid(urlVal);
+    if(!sheetId){
+      setHeSoStatus('Link/ID Google Sheet không hợp lệ.', 'err');
+      return;
+    }
+    document.getElementById('btnLoadHeSoSheet').disabled = true;
+    setHeSoStatus('Đang tải Bảng hệ số sản phẩm…', 'loading');
+    try{
+      const rows = await fetchSheetByGidJSONP(sheetId, gid);
+      const map = {};
+      let count = 0;
+      // Cột: 0=STT, 1=Mã SP (Đơn kế toán), 2=Tên SP, 3=Doanh số kỳ tham chiếu, 4=Số đơn, 5=Trạng thái,
+      // 6=Mã SP chuẩn, 7=Hệ số sản phẩm, 8=Ghi chú.
+      rows.forEach(r => {
+        const maSP = (r[1]||'').toString().trim().toUpperCase();
+        const heSo = parseVNNum(r[7]);
+        if(!maSP || !heSo) return; // bỏ qua dòng thiếu mã hoặc chưa xác định hệ số (quà tặng, hàng mới...)
+        map[maSP] = heSo;
+        count++;
+      });
+      heSoByProdCode = map;
+      try{ localStorage.setItem(HESO_LAST_URL_KEY, urlVal); }catch(e){}
+      setHeSoStatus('Đã tải ' + count + ' mã sản phẩm có hệ số lúc ' + new Date().toLocaleTimeString('vi-VN') + '.', 'ok');
+      if(dataLoaded){
+        render();
+        if(currentPage === 'kpi') renderKpiPage();
+        if(currentPage === 'nhanvien') renderNhanVienPage();
+      }
+    }catch(err){
+      console.error(err);
+      setHeSoStatus('Lỗi tải Bảng hệ số: ' + err.message, 'err');
+    }finally{
+      document.getElementById('btnLoadHeSoSheet').disabled = false;
+    }
+  }
+  document.getElementById('btnLoadHeSoSheet').addEventListener('click', function(){ loadHeSoSheet(false); });
+  document.getElementById('btnRefreshHeSoSheet').addEventListener('click', function(){ loadHeSoSheet(true); });
 
   function getPreviousRange(range){
     if(period === 'day'){
@@ -1709,6 +2035,7 @@
       routes = newRoutes.filter(r => !isExcludedName(r.name));
       soTayOrders = newSoTayOrders.filter(o => !isExcludedName(o.name));
       allEmployeeNames = dedupeNames([...orders.map(o=>o.name), ...calls.map(c=>c.name), ...routes.map(r=>r.name), ...soTayOrders.map(o=>o.name)]).filter(n => !isExcludedName(n));
+      applyUserScopeIfNeeded();
       dataSource = 'gsheet';
       dimLabel = 'khu vực';
       document.getElementById('dimLabel').textContent = dimLabel;
@@ -2127,7 +2454,10 @@
       const khVisited = new Set(callsInPeriod.filter(c=>c.name===name).map(c=>c.khCode)).size;
       const khVisitedPrev = new Set(callsInPrevPeriod.filter(c=>c.name===name).map(c=>c.khCode)).size;
       const khQuota = khTargetQuota(range.start, range.end, 1);
-      return {name, revP, revM, ordP, visitP, visitPPrev, target, pct, meta, khVisited, khVisitedPrev, khQuota};
+      // Doanh số Kế toán luỹ kế tháng SAU KHI áp Bảng hệ số sản phẩm — dùng thay cho "revM" ở cột "Lũy kế
+      // tháng" của bảng "Hiệu suất theo nhân viên" (không ảnh hưởng "pct"/% hoàn thành, vẫn tính theo revM gốc).
+      const revMHeSo = heSoDataAvailable() ? keToanRevHeSoInRange(mStart, mEnd, name) : null;
+      return {name, revP, revM, revMHeSo, ordP, visitP, visitPPrev, target, pct, meta, khVisited, khVisitedPrev, khQuota};
     }).sort((a,b)=> b.revP - a.revP);
 
     // ===== KPI: Nhân viên đạt/vượt KPI =====
@@ -2157,14 +2487,34 @@
     const prorateFactor = period === 'month' ? 1 : Math.min(1, daysInPeriodSel / daysInMonthTotal);
     const proratedTotalTarget = totalTargetSum * prorateFactor;
     const revenuePct = proratedTotalTarget ? (revPeriod/proratedTotalTarget*100) : null;
-    const empRowsPeriod = empRows.map(r => {
-      const targetP = (r.target||0) * prorateFactor;
-      const pctP = targetP ? (r.revP/targetP*100) : null;
-      return {targetP, pctP};
+    // Doanh số tính song song theo Đơn Sổ tay (không cộng gộp với Đơn Kế Toán ở trên — xem để so sánh).
+    const revPeriodSoTay = soTayDataAvailable() ? soTayRevInRange(range.start, range.end) : null;
+    const revenuePctSoTay = (revPeriodSoTay!==null && proratedTotalTarget) ? (revPeriodSoTay/proratedTotalTarget*100) : null;
+    // Doanh số Đơn Kế Toán SAU KHI nhân thêm Bảng hệ số sản phẩm — chỉ là 1 dòng hiển thị thêm, không thay
+    // thế/không làm thay đổi "revPeriod" (doanh số Kế toán gốc) ở trên.
+    const revPeriodHeSo = keToanRevHeSoInRange(range.start, range.end);
+    const revenuePctHeSo = proratedTotalTarget ? (revPeriodHeSo/proratedTotalTarget*100) : null;
+    // ===== "Nhân viên đạt/vượt KPI" — tính theo trang KPI (đa hạng mục, Trang tính2), KHÔNG còn tính
+    // riêng theo doanh số/chỉ tiêu tháng như trước. Quy tắc: 1 người được tính là "đạt" khi TẤT CẢ các
+    // sản phẩm/hạng mục tính được của người đó đều đạt từ 50% trở lên, VÀ %TB (trung bình các hạng mục,
+    // mỗi mục tính tối đa 150% như trang KPI) lớn hơn 80%.
+    const kpiRowsForAchieve = scopeToCurrentUser(dedupedKpiDetailRows(), r => r.name);
+    const kpiAchieveEntries = kpiRowsForAchieve.map(row => {
+      const empOrdersInMonth = empOrdersForKpi(row.name, ordersInMonth);
+      const pcts = row.items.map(item => {
+        const actual = computeKpiActualWithManual(item, empOrdersInMonth, row.name, mKey);
+        return (actual!==null && item.target) ? (actual/item.target*100) : null;
+      });
+      const computable = pcts.filter(p => p!==null);
+      const avgPct = computable.length ? computable.reduce((s,p)=>s+Math.min(p,150),0)/computable.length : null;
+      const allAbove50 = computable.length>0 && computable.every(p => p>=50);
+      const achieved = allAbove50 && avgPct!==null && avgPct>80;
+      return {name: row.name, achieved, avgPct, hasData: computable.length>0};
     });
-    const achievedPeriod = empRowsPeriod.filter(r => r.pctP !== null && r.pctP >= 100).length;
-    const urgentCountPeriod = empRowsPeriod.filter(r => (r.pctP === null ? 0 : r.pctP) < 50).length;
-    const empAchievedPct = allEmployeeNames.length ? (achievedPeriod/allEmployeeNames.length*100) : null;
+    const kpiAchieveDenom = kpiAchieveEntries.length;
+    const achievedPeriod = kpiAchieveEntries.filter(e=>e.achieved).length;
+    const urgentCountPeriod = kpiAchieveEntries.filter(e=>!e.achieved).length;
+    const empAchievedPct = kpiAchieveDenom ? (achievedPeriod/kpiAchieveDenom*100) : null;
 
     // ===== render 4 KPI cards (kèm biểu đồ vòng tròn thực đạt/tổng) =====
     document.getElementById('kpiGrid').innerHTML = `
@@ -2172,17 +2522,27 @@
         <div class="kpi-icon blue">💰</div>
         <div class="kpi-label">Tổng doanh số team</div>
         <div class="kpi-value">${fmtCompact(revPeriod)} / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}</div>
-        <div class="kpi-sub muted">Kỳ: ${range.label}${lastDataDate ? ' · Cập nhật đến ' + fmtDate(lastDataDate) : ''}</div>
+        <div class="kpi-sub muted">🧾 Theo Kế toán · Kỳ: ${range.label}${lastDataDate ? ' · Cập nhật đến ' + fmtDate(lastDataDate) : ''}</div>
+        ${revPeriodSoTay!==null ? `<div class="kpi-sub muted" style="margin-top:2px;">📝 Theo Sổ tay: <b style="color:#fff;">${fmtCompact(revPeriodSoTay)}</b> / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}${revenuePctSoTay!==null ? ' ('+revenuePctSoTay.toFixed(1)+'%)' : ''}</div>` : ''}
         ${gaugeHtml(revenuePct)}
-        <div class="kpi-gauge-caption">% hoàn thành chỉ tiêu doanh số (quy đổi theo ${periodNoun()})</div>
+        <div class="kpi-gauge-caption">% hoàn thành chỉ tiêu doanh số theo Kế toán (quy đổi theo ${periodNoun()})</div>
       </div>
+      ${heSoDataAvailable() ? `
+      <div class="kpi-card">
+        <div class="kpi-icon amber">⚖️</div>
+        <div class="kpi-label">Doanh số sau hệ số</div>
+        <div class="kpi-value">${fmtCompact(revPeriodHeSo)} / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}</div>
+        <div class="kpi-sub muted">Kỳ: ${range.label} · doanh số Kế toán đã nhân hệ số sản phẩm</div>
+        ${gaugeHtml(revenuePctHeSo)}
+        <div class="kpi-gauge-caption">% hoàn thành chỉ tiêu doanh số sau hệ số (quy đổi theo ${periodNoun()})</div>
+      </div>` : ''}
       <div class="kpi-card">
         <div class="kpi-icon green">✅</div>
         <div class="kpi-label">Nhân viên đạt/vượt KPI</div>
-        <div class="kpi-value">${achievedPeriod}/${allEmployeeNames.length}</div>
-        <div class="kpi-sub ${urgentCountPeriod>0?'warn':'ok'}">${urgentCountPeriod>0 ? urgentCountPeriod+' người đang khẩn cấp trong kỳ này' : 'Không có ai khẩn cấp'}</div>
+        <div class="kpi-value">${achievedPeriod}/${kpiAchieveDenom}</div>
+        <div class="kpi-sub ${urgentCountPeriod>0?'warn':'ok'}">${urgentCountPeriod>0 ? urgentCountPeriod+' người chưa đạt (có SP dưới 50% hoặc %TB ≤ 80%)' : 'Không có ai chưa đạt'}</div>
         ${gaugeHtml(empAchievedPct)}
-        <div class="kpi-gauge-caption">% nhân viên đạt chỉ tiêu (quy đổi theo ${periodNoun()})</div>
+        <div class="kpi-gauge-caption">% người đạt: mọi SP ≥ 50% và %TB &gt; 80% (theo trang KPI, tháng ${mKey})</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon amber">👤</div>
@@ -2384,7 +2744,7 @@
         <td>${fmtNum(r.ordP)}</td>
         <td>${fmtNum(r.visitP)}</td>
         <td>${compHtml}</td>
-        <td>${fmtMoney(r.revM)}</td>
+        <td>${r.revMHeSo!==null ? fmtMoney(r.revMHeSo) : '<span style="color:var(--muted);">—</span>'}</td>
         <td><input type="number" class="target-input" data-name="${encodeURIComponent(r.name)}" value="${r.target||''}" placeholder="Nhập chỉ tiêu"></td>
         <td>
           <span class="pill ${pillClass}">${pillText}</span>
@@ -2497,7 +2857,11 @@
       const kpiRow = (typeof kpiDetailRows !== 'undefined' ? kpiDetailRows : []).find(r => normalizeName(r.name)===normalizeName(name));
       const hireDate = kpiRow ? kpiRow.hireDate : null;
       const tenureMonths = hireDate ? monthsSinceHire(hireDate) : null;
-      return {name, revP, revM, ordP, visitP, target, pct, meta, khVisited, khVisitedPrev, khQuota, hireDate, tenureMonths};
+      // Doanh số tính song song theo Đơn Sổ tay (không cộng gộp với "revP" ở trên) — để so sánh nguồn.
+      const revPSoTay = soTayDataAvailable() ? soTayRevInRange(range.start, range.end, name) : null;
+      // Doanh số Kế toán SAU KHI áp Bảng hệ số sản phẩm — chỉ hiển thị thêm, không thay đổi "revP" ở trên.
+      const revPHeSo = heSoDataAvailable() ? keToanRevHeSoInRange(range.start, range.end, name) : null;
+      return {name, revP, revM, revPSoTay, revPHeSo, ordP, visitP, target, pct, meta, khVisited, khVisitedPrev, khQuota, hireDate, tenureMonths};
     }).filter(r => {
       if(!searchTerm) return true;
       return r.name.toLowerCase().includes(searchTerm)
@@ -2525,14 +2889,16 @@
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px;color:var(--muted);">
-            <div>Doanh số kỳ<br><b style="color:#fff;font-size:13px;">${fmtMoney(r.revP)}</b></div>
+            <div>Doanh số kỳ (Kế toán)<br><b style="color:#fff;font-size:13px;">${fmtMoney(r.revP)}</b></div>
             <div>Đơn hàng<br><b style="color:#fff;font-size:13px;">${fmtNum(r.ordP)}</b></div>
             <div>Lượt thăm<br><b style="color:#fff;font-size:13px;">${fmtNum(r.visitP)}</b></div>
             <div>KH ghé/Định mức<br><b style="color:#fff;font-size:13px;">${compText}</b></div>
           </div>
+          ${r.revPSoTay!==null ? `<div style="margin-top:8px;font-size:11px;color:var(--muted);">📝 Doanh số kỳ (Sổ tay): <b style="color:#fff;">${fmtMoney(r.revPSoTay)}</b></div>` : ''}
+          ${r.revPHeSo!==null ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><div style="font-size:11px;color:var(--muted);">Doanh số sau hệ số</div><div style="font-size:16px;font-weight:800;color:#fff;">${fmtMoney(r.revPHeSo)}</div></div>` : ''}
           <div style="margin-top:10px;">
             <span class="pill ${pillClass}">${pillText}</span>
-            <span style="color:var(--muted);font-size:11px;margin-left:4px;">chỉ tiêu tháng</span>
+            <span style="color:var(--muted);font-size:11px;margin-left:4px;">chỉ tiêu tháng (theo Kế toán)</span>
           </div>
         </div>
       `;
@@ -2601,6 +2967,14 @@
     // 1 sản phẩm.
     const re2 = /(\d{1,5})(?:ml|mg|mcg)\b/g;
     while((m = re2.exec(text))){ sizes.push(+m[1]); }
+    // SỬA (26/09/2026): thiếu mẫu cho đơn vị "gam" viết tắt liền số dạng "Xg" (không phải "Xmg") — phát
+    // hiện thực tế: "Tigin gel - 25g" và "Tigin gel 50g" bị coi là CÙNG sản phẩm (không phát hiện được
+    // quy cách nào ở cả 2 bên nên packSizeCompatible() bỏ qua điều kiện, mặc định coi là khớp) khiến thực
+    // đạt trên dashboard bị CỘNG DỒN NHẦM cả 2 quy cách (87+15=102) thay vì chỉ tính đúng quy cách 25g mà
+    // chỉ tiêu yêu cầu (87, khớp đúng số kế toán báo). Dò số ngay trước chữ "g" đứng riêng (không phải
+    // "mg") — dùng lookahead phủ định để không bắt nhầm "g" trong "mg/mcg" (đã có mẫu riêng ở trên).
+    const re3 = /(\d{1,5})(?<!m)g\b/g;
+    while((m = re3.exec(text))){ sizes.push(+m[1]); }
     return sizes;
   }
   // Kiểm tra quy cách đóng gói: nếu CẢ 2 bên đều xác định được ít nhất 1 số quy cách, phải có ít nhất
@@ -2618,8 +2992,14 @@
   // nhưng đa số từ khoá đặc trưng (nebusal/coleus/spray/baby/50ml) đều trùng nhau. Chỉ tính các từ có
   // độ dài ≥3 và không phải thuần số (bỏ số lượng/đơn vị rời rạc như "1", "24"), yêu cầu phần lớn (≥60%,
   // tối thiểu 2 từ) số từ khoá của chuỗi NGẮN HƠN phải xuất hiện ở chuỗi còn lại.
+  // SỬA (26/09/2026): phát hiện thực tế — "Vital Pro - Hộp 1 lọ 60 viên" (chỉ tiêu) bị khớp NHẦM với
+  // "Cymiras - Hộp 6 vỉ x 5 viên" (hoàn toàn KHÁC sản phẩm!) chỉ vì cả 2 đều chứa 2 từ khoá chung "hop"
+  // và "vien" — 2 từ này chỉ là ĐƠN VỊ ĐÓNG GÓI CHUNG CHUNG (hộp = box, viên = tablet/pill) xuất hiện ở
+  // hầu hết MỌI sản phẩm, không phải từ khoá đặc trưng riêng của 1 sản phẩm cụ thể, nên không được tính
+  // vào số từ khoá trùng khi so khớp. Loại các từ đóng gói/đơn vị chung này ra khỏi danh sách từ khoá.
+  const GENERIC_PACKAGING_WORDS = new Set(['hop','lo','vien','ong','goi','tuyp','chai','cai','tui','hu','nang','vi']);
   function tokenOverlapMatch(fullA, fullB){
-    const toks = s => (s||'').split(' ').filter(t => t.length >= 3 && !/^\d+$/.test(t));
+    const toks = s => (s||'').split(' ').filter(t => t.length >= 3 && !/^\d+$/.test(t) && !GENERIC_PACKAGING_WORDS.has(t));
     const A = toks(fullA), B = toks(fullB);
     if(!A.length || !B.length) return false;
     const setB = new Set(B);
@@ -2801,6 +3181,7 @@
         .map(r => parseKpi2Row(r, kpi2Shift))
         .filter(r => r && r.name && !isExcludedName(r.name));
       canonicalizeKpiItemNames(kpiDetailRows);
+      renderLoginTiles();
 
       try{ localStorage.setItem(KPI_LAST_URL_KEY, document.getElementById('kpiSheetUrl').value); }catch(e){}
       const now = new Date();
@@ -2887,6 +3268,16 @@
   document.getElementById('btnLoadMailSheet').addEventListener('click', function(){ loadMailSheet(false); });
   document.getElementById('btnRefreshMailSheet').addEventListener('click', function(){ loadMailSheet(true); });
 
+  // ---------- Báo cáo tổng hợp team gửi ASM ----------
+  const ASM_NAME_KEY = 'salesDashboard.asmName';
+  document.getElementById('asmName').addEventListener('change', function(){
+    try{ localStorage.setItem(ASM_NAME_KEY, this.value); }catch(e){}
+    if(currentPage === 'baocao') renderBaoCaoPage();
+  });
+  document.getElementById('btnRefreshTeamReport').addEventListener('click', function(){
+    if(currentPage === 'baocao') renderBaoCaoPage();
+  });
+
   function scheduleKpiAutoRefresh(){
     if(kpiAutoRefreshTimer){ clearInterval(kpiAutoRefreshTimer); kpiAutoRefreshTimer = null; }
     kpiAutoRefreshTimer = setInterval(() => { loadKpiSheet(true); }, AUTO_REFRESH_MS);
@@ -2918,6 +3309,134 @@
     });
     return order.map(k => byName[k]);
   }
+
+  // ================= ĐĂNG NHẬP THEO TỪNG NGƯỜI =================
+  // Mỗi người có 1 ô tên riêng (không gộp theo quản lý). Bấm vào tên -> nhập mã nhân viên làm mật khẩu.
+  // SS xem được toàn bộ team; các vị trí khác chỉ xem được dữ liệu của chính mình (lọc qua applyUserScopeIfNeeded()).
+  let loginTilesRendered = false;
+  let pendingLoginRow = null; // dòng KPI của người vừa bấm chọn tên, đang chờ nhập mã NV
+
+  function renderLoginTiles(){
+    // Đã đăng nhập rồi thì không cần vẽ lại màn hình đăng nhập nữa.
+    if(currentUser) return;
+    const rows = dedupedKpiDetailRows();
+    document.getElementById('loginLoading').style.display = rows.length ? 'none' : 'block';
+    document.getElementById('loginTilesStep').style.display = rows.length ? 'block' : 'none';
+    if(!rows.length) return;
+
+    // Tự động đăng nhập lại nếu trình duyệt này trước đó đã đăng nhập thành công (khỏi phải nhập mã NV mỗi lần mở).
+    if(!loginTilesRendered){
+      let savedName = '';
+      try{ savedName = localStorage.getItem(CURRENT_USER_KEY) || ''; }catch(e){}
+      if(savedName){
+        const row = rows.find(r => normalizeName(r.name) === normalizeName(savedName));
+        if(row){ finishLogin(row); return; }
+      }
+    }
+    loginTilesRendered = true;
+
+    const sorted = rows.slice().sort((a,b) => {
+      const am = isManagerViTri(a.viTri) ? 0 : 1, bm = isManagerViTri(b.viTri) ? 0 : 1;
+      if(am !== bm) return am - bm;
+      return (a.name||'').localeCompare(b.name||'', 'vi');
+    });
+    buildLoginTiles(sorted);
+
+    const searchInput = document.getElementById('loginSearchInput');
+    searchInput.oninput = function(){
+      const term = normalizeName(searchInput.value);
+      const filtered = term ? sorted.filter(r => normalizeName(r.name).includes(term)) : sorted;
+      buildLoginTiles(filtered);
+    };
+  }
+
+  function buildLoginTiles(rows){
+    const wrap = document.getElementById('loginTiles');
+    if(!rows.length){
+      wrap.innerHTML = '<div class="login-tile-empty">Không tìm thấy tên phù hợp.</div>';
+      return;
+    }
+    wrap.innerHTML = rows.map((r, i) => `
+      <div class="login-tile" data-idx="${i}">
+        <div class="avatar">${escSvg(initials(r.name))}</div>
+        <div class="login-tile-name">${escSvg(r.name)}</div>
+        <div class="login-tile-role">${escSvg(isManagerViTri(r.viTri) ? 'Quản lý (SS)' : (r.viTri||'Nhân viên'))}</div>
+      </div>`).join('');
+    wrap.querySelectorAll('.login-tile').forEach((el, i) => {
+      el.addEventListener('click', function(){ showPasswordStep(rows[i]); });
+    });
+  }
+
+  function showPasswordStep(row){
+    pendingLoginRow = row;
+    document.getElementById('loginTilesStep').style.display = 'none';
+    document.getElementById('loginPassStep').style.display = 'block';
+    document.getElementById('loginSub').textContent = 'Nhập mã nhân viên để đăng nhập';
+    document.getElementById('loginPassAvatar').textContent = initials(row.name);
+    document.getElementById('loginPassName').textContent = row.name;
+    document.getElementById('loginPassRole').textContent = isManagerViTri(row.viTri) ? 'Quản lý (SS) — xem được toàn bộ team' : (row.viTri || 'Nhân viên') + ' — chỉ xem được dữ liệu của bạn';
+    document.getElementById('loginPassError').textContent = '';
+    const input = document.getElementById('loginPassInput');
+    input.value = '';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  document.getElementById('loginBackBtn').addEventListener('click', function(){
+    pendingLoginRow = null;
+    document.getElementById('loginPassStep').style.display = 'none';
+    document.getElementById('loginTilesStep').style.display = 'block';
+    document.getElementById('loginSub').textContent = 'Chọn tên của bạn để đăng nhập';
+  });
+
+  document.getElementById('loginPassForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    if(!pendingLoginRow) return;
+    const entered = document.getElementById('loginPassInput').value.toString().trim();
+    const real = (pendingLoginRow.maNV || '').toString().trim();
+    if(!real){
+      document.getElementById('loginPassError').textContent = 'Tài khoản này chưa có mã nhân viên trong dữ liệu — liên hệ ASM.';
+      return;
+    }
+    if(entered.toUpperCase() !== real.toUpperCase()){
+      document.getElementById('loginPassError').textContent = 'Sai mã nhân viên. Vui lòng thử lại.';
+      document.getElementById('loginPassInput').value = '';
+      document.getElementById('loginPassInput').focus();
+      return;
+    }
+    finishLogin(pendingLoginRow);
+  });
+
+  function finishLogin(row){
+    currentUser = {
+      name: row.name,
+      maNV: row.maNV || '',
+      viTri: row.viTri || '',
+      isManager: isManagerViTri(row.viTri)
+    };
+    pendingLoginRow = null;
+    try{ localStorage.setItem(CURRENT_USER_KEY, row.name); }catch(e){}
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('userChipAvatar').textContent = initials(currentUser.name);
+    document.getElementById('userChipName').textContent = currentUser.name;
+    document.getElementById('userChipRole').textContent = currentUser.isManager ? 'Quản lý (SS)' : (currentUser.viTri || 'Nhân viên');
+    // Nếu không phải quản lý, dữ liệu vừa tải (nếu đã có) cần lọc lại ngay theo đúng người này rồi vẽ lại toàn trang.
+    if(!currentUser.isManager){
+      applyUserScopeIfNeeded();
+      if(dataLoaded){ render(); if(currentPage === 'kpi') renderKpiPage(); }
+    }
+  }
+
+  function doLogout(){
+    currentUser = null;
+    loginTilesRendered = false;
+    try{ localStorage.removeItem(CURRENT_USER_KEY); }catch(e){}
+    location.reload();
+  }
+
+  document.getElementById('userChip').addEventListener('click', function(){
+    if(!currentUser) return;
+    if(confirm('Đăng xuất khỏi tài khoản "' + currentUser.name + '"?')) doLogout();
+  });
   function empOrdersForKpi(name, ordersInMonth){
     const kpiRows = (typeof kpiDetailRows !== 'undefined' ? kpiDetailRows : []);
     const myRow = kpiRows.find(r => normalizeName(r.name)===normalizeName(name));
@@ -2976,13 +3495,15 @@
     const ordersInMonth = orders.filter(o => inRange(o.date, mStart, mEnd));
 
     document.getElementById('kpiSub').textContent =
-      'KPI tháng ' + mKey + ' · nguồn chỉ tiêu: Google Sheet KPI (Trang tính2) · thực đạt tự động khớp từ Đơn Kế Toán theo tên sản phẩm';
+      'KPI tháng ' + mKey + ' · nguồn chỉ tiêu: Google Sheet KPI (Trang tính2) · thực đạt tự động khớp từ Đơn Kế Toán theo tên sản phẩm' +
+      (soTayDataAvailable() ? ' · riêng mục Doanh số có thêm số liệu 📝 theo Đơn Sổ tay để đối chiếu (không cộng gộp 2 nguồn)' : '');
     document.getElementById('kpiTableBadge').textContent = 'Tháng ' + (mStart.getMonth()+1) + '/' + mStart.getFullYear();
 
     // Lọc theo ô tìm kiếm sidebar: tên NV, mã NV, khu vực/vị trí.
     const searchTerm = getSidebarSearchTerm();
     // Loại trùng theo tên TRƯỚC khi lọc tìm kiếm — mỗi người chỉ hiện 1 thẻ KPI (ưu tiên dòng "SS" nếu có).
-    const dedupedRows = dedupedKpiDetailRows();
+    // Nếu người đang đăng nhập không phải quản lý (SS) thì chỉ giữ lại đúng 1 dòng của chính họ.
+    const dedupedRows = scopeToCurrentUser(dedupedKpiDetailRows(), r => r.name);
     const kpiRowsFiltered = !searchTerm ? dedupedRows : dedupedRows.filter(row =>
       (row.name||'').toLowerCase().includes(searchTerm) ||
       (row.maNV||'').toLowerCase().includes(searchTerm) ||
@@ -2996,7 +3517,10 @@
       const items = row.items.map(item => {
         const actual = computeKpiActualWithManual(item, empOrdersInMonth, row.name, mKey);
         const pct = (actual!==null && item.target) ? (actual/item.target*100) : null;
-        return Object.assign({}, item, {actual, pct});
+        // Với hạng mục "Doanh số", tính thêm song song theo Đơn Sổ tay để so sánh (KHÔNG cộng gộp vào "actual" ở trên).
+        const actualSoTay = (item.unit === 'doanh số' && soTayDataAvailable()) ? empSoTayRevForMonth(row.name, mStart, mEnd) : null;
+        const pctSoTay = (actualSoTay!==null && item.target) ? (actualSoTay/item.target*100) : null;
+        return Object.assign({}, item, {actual, pct, actualSoTay, pctSoTay});
       });
       const computable = items.filter(it => it.pct!==null);
       const avgPct = computable.length ? computable.reduce((s,it)=>s+Math.min(it.pct,150),0)/computable.length : null;
@@ -3063,10 +3587,11 @@
             <td>${fmtKpiValue(it, it.target)}${it.unit!=='doanh số' && it.unit ? ' <span style="color:var(--muted);">('+it.unit+')</span>' : ''}</td>
             <td>${it.manual
               ? '<input type="number" class="kpi-manual-input" data-name="'+encodeURIComponent(e.name)+'" data-section="'+encodeURIComponent(it.section)+'" value="'+(it.actual!==null && it.actual!==undefined ? it.actual : '')+'" placeholder="Nhập tay" style="width:80px;">'
-              : fmtKpiValue(it, it.actual)}</td>
+              : fmtKpiValue(it, it.actual)}${it.actualSoTay!==null ? '<div style="font-size:10.5px;color:var(--muted);margin-top:3px;white-space:nowrap;">📝 Sổ tay: '+fmtMoney(it.actualSoTay)+'</div>' : ''}</td>
             <td>
               <span class="pill ${pctCls}">${it.pct===null?'—':it.pct.toFixed(1)+'%'}</span>
               ${it.pct===null ? '' : '<div class="bar-bg"><div class="bar-fg" style="width:'+barWidth+'%;background:'+barColor+';"></div></div>'}
+              ${it.pctSoTay!==null ? '<div style="font-size:10.5px;color:var(--muted);margin-top:3px;">📝 '+it.pctSoTay.toFixed(1)+'%</div>' : ''}
             </td>
           </tr>`;
       }).join('');
@@ -3129,8 +3654,41 @@
 
   const donhangStatusColors = { ok:'#2563eb', warn:'#f59e0b', urgent:'#ef4444', info:'#8b5cf6', na:'#7b869e' };
 
+  // SỬA (26/09/2026): thêm nguồn "Đơn Kế Toán" cho trang Đơn hàng, bên cạnh nguồn "Đơn Sổ tay" cũ — vì
+  // tab "Đơn Sổ tay" có tháng không có dữ liệu (TDV chưa ghi/không dùng sổ tay), trong khi "Đơn Kế Toán"
+  // luôn có đầy đủ đơn đã xuất hoá đơn thật. Đơn Kế Toán KHÔNG có khái niệm "trạng thái" (Hoàn thành/Treo/
+  // Huỷ...) như đơn sổ tay — vì đã lên hoá đơn kế toán nghĩa là đã xong — nên khi chọn nguồn này, ẩn hẳn
+  // phần trạng thái, thay bằng thông tin Tỉnh/khu vực.
+  let donhangSource = 'ketoan'; // 'sotay' | 'ketoan' — mặc định Đơn Kế Toán vì luôn có dữ liệu đầy đủ, khớp nút "active" mặc định ở HTML phía trên
+
+  // Gộp các dòng sản phẩm trong Đơn Kế Toán về từng đơn (nhóm theo orderId = "Số ct") — tương tự
+  // aggregateSoTayOrders nhưng không có "status" (không áp dụng cho đơn đã lên hoá đơn kế toán).
+  function aggregateKeToanOrdersForDonHang(lineItems){
+    const map = {};
+    lineItems.forEach(o => {
+      if(!map[o.orderId]){
+        map[o.orderId] = { orderId: o.orderId, date: o.date, name: o.name, khName: o.khName, khCode: o.khCode, dim: o.dim, lines: 0, qty: 0, rev: 0 };
+      }
+      const agg = map[o.orderId];
+      agg.lines += 1;
+      agg.qty += o.qty;
+      agg.rev += o.rev;
+      if(o.date && (!agg.date || o.date > agg.date)) agg.date = o.date;
+    });
+    return Object.values(map);
+  }
+
   function renderDonHangPage(){
     const range = getPeriodRange();
+    if(donhangSource === 'ketoan') renderDonHangKeToan(range); else renderDonHangSoTay(range);
+  }
+
+  function renderDonHangSoTay(range){
+    document.getElementById('donhangFilterField').style.display = '';
+    document.getElementById('donhangFilterLabel').textContent = 'Lọc theo trạng thái';
+    document.getElementById('donhangEmpTableTitle').textContent = '👤 Đơn hàng theo nhân viên & trạng thái';
+    document.getElementById('donhangChartTitle').textContent = '🥯 Tỉ lệ theo trạng thái';
+
     const linesInPeriod = soTayOrders.filter(o => inRange(o.date, range.start, range.end));
     const ordersAgg = aggregateSoTayOrders(linesInPeriod).map(o => {
       const info = classifyOrderStatus(o.status);
@@ -3185,6 +3743,15 @@
       else e.processing += 1;
     });
     const empRowsDonHang = Object.values(empMap).sort((a,b)=>b.total-a.total);
+    document.querySelector('#donhangEmpTable thead').innerHTML = `
+      <tr>
+        <th class="left">Nhân viên</th>
+        <th>Tổng đơn</th>
+        <th>Hoàn thành</th>
+        <th>Đang xử lý</th>
+        <th>Cần chú ý</th>
+        <th>Doanh thu</th>
+      </tr>`;
     const empBody = document.querySelector('#donhangEmpTable tbody');
     empBody.innerHTML = empRowsDonHang.map(e => `
       <tr>
@@ -3230,6 +3797,16 @@
 
     const MAX_ROWS = 250;
     const shown = filteredOrders.slice(0, MAX_ROWS);
+    document.querySelector('#donhangTable thead').innerHTML = `
+      <tr>
+        <th class="left">Mã đơn</th>
+        <th>Ngày đặt</th>
+        <th class="left">Nhân viên</th>
+        <th class="left">Khách hàng</th>
+        <th>Số SP</th>
+        <th>Thành tiền</th>
+        <th>Trạng thái</th>
+      </tr>`;
     const orderBody = document.querySelector('#donhangTable tbody');
     orderBody.innerHTML = shown.map(o => `
       <tr>
@@ -3245,7 +3822,143 @@
       orderBody.innerHTML += `<tr><td colspan="7" style="text-align:center;color:var(--muted);">… và ${filteredOrders.length - MAX_ROWS} đơn khác (thu hẹp kỳ xem hoặc lọc trạng thái để xem hết)</td></tr>`;
     }
   }
+
+  function renderDonHangKeToan(range){
+    document.getElementById('donhangEmpTableTitle').textContent = '👤 Đơn hàng theo nhân viên';
+    document.getElementById('donhangChartTitle').textContent = '🥯 Doanh thu theo tỉnh/khu vực';
+
+    const linesInPeriod = orders.filter(o => inRange(o.date, range.start, range.end));
+    const ordersAgg = aggregateKeToanOrdersForDonHang(linesInPeriod).sort((a,b) => b.date - a.date);
+
+    document.getElementById('donhangSub').textContent =
+      'Đơn hàng kế toán kỳ ' + range.label + ' · nguồn: Google Sheet (tab "Đơn Kế Toán") · ' + ordersAgg.length + ' đơn';
+
+    // ===== 4 thẻ tổng quan (không có khái niệm trạng thái) =====
+    const totalOrders = ordersAgg.length;
+    const totalRev = ordersAgg.reduce((s,o)=>s+o.rev, 0);
+    const uniqKh = new Set(linesInPeriod.map(o=>o.khCode).filter(Boolean)).size;
+    const uniqProd = new Set(linesInPeriod.map(o=>o.prodCode || o.prodName).filter(Boolean)).size;
+
+    document.getElementById('donhangSummaryCards').innerHTML = `
+      <div class="kpi-card">
+        <div class="kpi-icon blue">🧾</div>
+        <div class="kpi-label">Tổng đơn hàng</div>
+        <div class="kpi-value">${fmtNum(totalOrders)}</div>
+        <div class="kpi-sub muted">Kỳ ${range.label}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green">💰</div>
+        <div class="kpi-label">Tổng giá trị đơn</div>
+        <div class="kpi-value">${fmtCompact(totalRev)}</div>
+        <div class="kpi-sub muted">${fmtMoney(totalRev)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple">🧑‍🤝‍🧑</div>
+        <div class="kpi-label">Khách hàng</div>
+        <div class="kpi-value">${fmtNum(uniqKh)}</div>
+        <div class="kpi-sub muted">Đã phát sinh đơn trong kỳ</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon amber">💊</div>
+        <div class="kpi-label">Sản phẩm</div>
+        <div class="kpi-value">${fmtNum(uniqProd)}</div>
+        <div class="kpi-sub muted">Đã bán trong kỳ</div>
+      </div>
+    `;
+
+    // ===== bảng theo nhân viên =====
+    const empMap = {};
+    ordersAgg.forEach(o => {
+      if(!empMap[o.name]) empMap[o.name] = {name:o.name, total:0, qty:0, rev:0};
+      const e = empMap[o.name];
+      e.total += 1;
+      e.qty += o.qty;
+      e.rev += o.rev;
+    });
+    const empRowsDonHang = Object.values(empMap).sort((a,b)=>b.rev-a.rev);
+    document.querySelector('#donhangEmpTable thead').innerHTML = `
+      <tr>
+        <th class="left">Nhân viên</th>
+        <th>Tổng đơn</th>
+        <th>Tổng SL</th>
+        <th>Doanh thu</th>
+      </tr>`;
+    const empBody = document.querySelector('#donhangEmpTable tbody');
+    empBody.innerHTML = empRowsDonHang.map(e => `
+      <tr>
+        <td class="left name-cell">${escSvg(e.name)}</td>
+        <td>${fmtNum(e.total)}</td>
+        <td>${fmtNum(e.qty)}</td>
+        <td>${fmtMoney(e.rev)}</td>
+      </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);">Chưa có dữ liệu đơn kế toán trong kỳ này</td></tr>';
+
+    // ===== donut doanh thu theo tỉnh/khu vực (thay cho trạng thái) =====
+    const dimMap = {};
+    linesInPeriod.forEach(o => { const k = o.dim || 'Khác'; dimMap[k] = (dimMap[k]||0) + o.rev; });
+    const dimEntries = Object.entries(dimMap).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+    const DIM_PALETTE = ['#2563eb','#16a34a','#f59e0b','#ef4444','#8b5cf6','#0ea5e9','#ec4899','#84cc16','#f97316','#14b8a6'];
+    document.getElementById('donhangStatusChartBox').innerHTML = svgDonutChartHtml(dimEntries, DIM_PALETTE);
+
+    // ===== bộ lọc: Đơn Kế Toán không có khái niệm "trạng thái" (đã xuất hoá đơn là coi như xong) nên
+    // đổi hẳn dropdown lọc này thành lọc theo NHÂN VIÊN thay vì tỉnh/khu vực (theo yêu cầu người dùng).
+    document.getElementById('donhangFilterField').style.display = '';
+    document.getElementById('donhangFilterLabel').textContent = 'Lọc theo nhân viên';
+    const filterSel = document.getElementById('donhangStatusFilter');
+    const prevVal = filterSel.value;
+    const distinctEmps = Object.keys(empMap).sort();
+    filterSel.innerHTML = '<option value="">Tất cả nhân viên</option>' +
+      distinctEmps.map(n => `<option value="${escSvg(n)}">${escSvg(n)}</option>`).join('');
+    if(distinctEmps.includes(prevVal)) filterSel.value = prevVal;
+
+    // ===== bảng danh sách đơn =====
+    const filterVal = filterSel.value;
+    let filteredOrders = filterVal ? ordersAgg.filter(o => o.name === filterVal) : ordersAgg;
+    const searchTerm = getSidebarSearchTerm();
+    if(searchTerm){
+      filteredOrders = filteredOrders.filter(o =>
+        (o.name||'').toLowerCase().includes(searchTerm) ||
+        (o.khName||'').toLowerCase().includes(searchTerm) ||
+        (o.orderId||'').toLowerCase().includes(searchTerm)
+      );
+    }
+    document.getElementById('donhangTableBadge').textContent = filteredOrders.length + '/' + ordersAgg.length + ' đơn';
+
+    const MAX_ROWS = 250;
+    const shown = filteredOrders.slice(0, MAX_ROWS);
+    document.querySelector('#donhangTable thead').innerHTML = `
+      <tr>
+        <th class="left">Số ct</th>
+        <th>Ngày</th>
+        <th class="left">Nhân viên</th>
+        <th class="left">Khách hàng</th>
+        <th>Số SP</th>
+        <th>Thành tiền</th>
+        <th class="left">Tỉnh</th>
+      </tr>`;
+    const orderBody = document.querySelector('#donhangTable tbody');
+    orderBody.innerHTML = shown.map(o => `
+      <tr>
+        <td class="left">${escSvg(o.orderId)}</td>
+        <td>${o.date ? fmtDate(o.date) : '—'}</td>
+        <td class="left name-cell">${escSvg(o.name)}</td>
+        <td class="left">${escSvg(o.khName || '—')}</td>
+        <td>${fmtNum(o.lines)}</td>
+        <td>${fmtMoney(o.rev)}</td>
+        <td class="left">${escSvg(o.dim || 'Khác')}</td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);">Không có đơn nào khớp bộ lọc</td></tr>';
+    if(filteredOrders.length > MAX_ROWS){
+      orderBody.innerHTML += `<tr><td colspan="7" style="text-align:center;color:var(--muted);">… và ${filteredOrders.length - MAX_ROWS} đơn khác (thu hẹp kỳ xem hoặc lọc để xem hết)</td></tr>`;
+    }
+  }
+
   document.getElementById('donhangStatusFilter').addEventListener('change', function(){
+    if(dataLoaded && currentPage === 'donhang') renderDonHangPage();
+  });
+  document.getElementById('donhangSourceTabs').addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-src]');
+    if(!btn) return;
+    donhangSource = btn.getAttribute('data-src');
+    this.querySelectorAll('button').forEach(b => b.classList.toggle('active', b===btn));
     if(dataLoaded && currentPage === 'donhang') renderDonHangPage();
   });
 
@@ -3286,6 +3999,9 @@
       monthKeys = Array.from(new Set(orders.map(o=>monthKey(o.date)))).sort().reverse().slice(0,3);
       ordersTrend = orders.filter(o => monthKeys.includes(monthKey(o.date)));
     }
+    // Trang này tự fetch lại "Đơn Kế Toán" trực tiếp từ Google Sheet (không đi qua biến `orders` toàn cục
+    // đã được lọc theo người đăng nhập ở applyUserScopeIfNeeded) — nên phải lọc lại thủ công ở đây.
+    ordersTrend = scopeToCurrentUser(ordersTrend, o => o.name);
 
     if(currentPage !== 'khachhang') return; // đã chuyển trang khác trong lúc tải — bỏ qua kết quả
 
@@ -4085,6 +4801,320 @@
   window.exportEmployeeReportPng = exportEmployeeReportPng;
   window.copyEmployeeReportHtml = copyEmployeeReportHtml;
   window.previewEmployeeReportHtml = previewEmployeeReportHtml;
+  window.copyTeamReportHtml = copyTeamReportHtml;
+  window.previewTeamReportHtml = previewTeamReportHtml;
+
+  // ---------- Báo cáo tổng hợp team: tổng hợp dữ liệu đầy đủ (KPI, sản phẩm, xếp hạng...) ----------
+  let teamReportCache = null; // {html, email, subject, bodyText, data}
+
+  function buildTeamReportData(empRowsBC, range, prevRange, mKey){
+    const n = empRowsBC.length;
+    const mStart = startOfMonth(selectedDate);
+    const mEnd = endOfMonth(selectedDate);
+
+    // QUAN TRỌNG: với vị trí "SS" (giám sát), số "thực đạt" (doanh số tháng) và các hạng mục KPI của
+    // MỘT NGƯỜI trong empRowsBC vốn đã được tính bằng TỔNG của cả team/khu vực họ phụ trách (xem ghi chú
+    // tại empOrdersForKpi và getKpiRowForEmployee — đây là quy tắc đúng cho card CÁ NHÂN của SS). Nếu
+    // cộng dồn lại theo TỪNG DÒNG nhân viên (SS + từng TDV) để ra số toàn team sẽ bị TÍNH TRÙNG (số của
+    // SS đã bao gồm số của các TDV rồi, cộng thêm lần nữa là sai) — đây chính là lỗi đã được báo. Vì vậy
+    // doanh số/đơn hàng/khách hàng ghé thăm của TOÀN TEAM phải tính THẲNG từ dữ liệu đơn hàng/check-in gốc
+    // theo kỳ, thay vì cộng dồn theo từng dòng nhân viên trong empRowsBC.
+    const periodOrders = orders.filter(o => inRange(o.date, range.start, range.end));
+    const prevPeriodOrders = orders.filter(o => inRange(o.date, prevRange.start, prevRange.end));
+    const monthOrders = orders.filter(o => inRange(o.date, mStart, mEnd));
+    const revP = periodOrders.reduce((s,o)=>s+o.rev,0);
+    const revPrev = prevPeriodOrders.reduce((s,o)=>s+o.rev,0);
+    const revM = monthOrders.reduce((s,o)=>s+o.rev,0);
+    // Chỉ tiêu doanh số (getTarget) là chỉ tiêu ĐÃ ĐƯỢC CHIA riêng cho từng người (kể cả phần "còn lại"
+    // gán cho SS) — cộng dồn theo từng người ở đây ra đúng tổng chỉ tiêu team, không bị trùng.
+    const target = empRowsBC.reduce((s,e)=>s+(e.target||0),0);
+    const pct = target ? (revM/target*100) : null;
+    const ordCount = new Set(periodOrders.map(o=>o.orderId)).size;
+    const ordCountPrev = new Set(prevPeriodOrders.map(o=>o.orderId)).size;
+
+    const periodCalls = calls.filter(c => inRange(c.date, range.start, range.end));
+    const prevPeriodCalls = calls.filter(c => inRange(c.date, prevRange.start, prevRange.end));
+    const khVisited = new Set(periodCalls.map(c=>c.khCode).filter(Boolean)).size;
+    const khVisitedPrev = new Set(prevPeriodCalls.map(c=>c.khCode).filter(Boolean)).size;
+    const khQuotaTeam = khTargetQuota(range.start, range.end, n);
+
+    // Top sản phẩm bán chạy toàn team trong kỳ đang chọn (dùng lại periodOrders ở trên).
+    const prodMap = {};
+    periodOrders.forEach(o => {
+      const key = o.prodCode || o.prodName;
+      if(!key) return;
+      if(!prodMap[key]) prodMap[key] = {name:o.prodName, code:o.prodCode, qty:0, rev:0};
+      prodMap[key].qty += o.qty; prodMap[key].rev += o.rev;
+    });
+    const topProducts = Object.values(prodMap).sort((a,b)=>b.rev-a.rev).slice(0,5);
+
+    // Sản phẩm chưa từng phát sinh doanh số ở BẤT KỲ nhân viên nào (toàn bộ dữ liệu đã tải, không giới hạn theo kỳ).
+    const soldNamesAllTime = orders.map(o => o.prodName || o.prodCode || '');
+    const missingProducts = (typeof PRODUCT_CATALOG !== 'undefined' ? PRODUCT_CATALOG : [])
+      .filter(catName => !soldNamesAllTime.some(sold => productMatch(catName, sold)));
+
+    // KPI chi tiết theo hạng mục — CHỈ cộng dồn từ (các) dòng "SS" nếu team có người giữ vị trí này, vì
+    // dòng SS trong Trang tính2 vốn đã LÀ tổng chỉ tiêu/thực đạt của cả team (hoặc khu vực SS phụ trách);
+    // cộng thêm cả dòng TDV cá nhân bên cạnh sẽ bị tính trùng đúng như lỗi đã báo. Nếu team không có ai
+    // giữ vị trí SS thì mới cộng dồn theo từng TDV cá nhân (khi đó không có nguy cơ trùng).
+    const ssRows = empRowsBC.filter(e => {
+      const kpiRow = getKpiRowForEmployee(e.name);
+      return kpiRow && (kpiRow.viTri||'').trim().toUpperCase()==='SS';
+    });
+    const kpiSourceRows = ssRows.length ? ssRows : empRowsBC;
+    const kpiAgg = {};
+    kpiSourceRows.forEach(e => {
+      e.kpiItems.forEach(it => {
+        const key = it.section + '|' + (it.product||'');
+        if(!kpiAgg[key]) kpiAgg[key] = {section: it.section, product: it.product, unit: it.unit, target: 0, actual: 0, hasActual: false};
+        kpiAgg[key].target += (it.target||0);
+        if(it.actual !== null && it.actual !== undefined){ kpiAgg[key].actual += it.actual; kpiAgg[key].hasActual = true; }
+      });
+    });
+    const kpiTeamItems = Object.values(kpiAgg).map(it => Object.assign({}, it, {
+      actual: it.hasActual ? it.actual : null,
+      pct: (it.hasActual && it.target) ? (it.actual/it.target*100) : null
+    }));
+    const kpiComputable = kpiTeamItems.filter(it => it.pct!==null);
+    const kpiAvgPct = kpiComputable.length ? kpiComputable.reduce((s,it)=>s+Math.min(it.pct,150),0)/kpiComputable.length : null;
+    const kpiAchieved = kpiComputable.filter(it => it.pct>=100).length;
+    const kpiUrgent = kpiComputable.filter(it => it.pct<50).length;
+
+    const topPerformers = empRowsBC.filter(e => e.target && e.pct!==null && e.pct>=100);
+    const needAttention = empRowsBC.filter(e => e.target && e.pct!==null && e.pct<50);
+    const noTargetCount = empRowsBC.filter(e => !e.target).length;
+
+    return { n, revP, revPrev, revM, target, pct, ordCount, ordCountPrev, khVisited, khVisitedPrev, khQuotaTeam,
+      topProducts, missingProducts, kpiTeamItems, kpiAvgPct, kpiAchieved, kpiUrgent,
+      topPerformers, needAttention, noTargetCount, empRowsBC, range, prevRange, mKey };
+  }
+
+  function genTeamComment(d){
+    const sentences = [];
+    if(d.target === 0){
+      sentences.push('Chưa thiết lập đủ chỉ tiêu doanh số tháng cho team.');
+    } else if(d.pct >= 100){
+      sentences.push(`Team đã hoàn thành ${d.pct.toFixed(1)}% chỉ tiêu doanh số tháng — đạt hoặc vượt chỉ tiêu chung.`);
+    } else if(d.pct >= 70){
+      sentences.push(`Team đạt ${d.pct.toFixed(1)}% chỉ tiêu doanh số tháng — cần đẩy nhanh tốc độ trong những ngày còn lại để về đích.`);
+    } else {
+      sentences.push(`Team mới đạt ${d.pct.toFixed(1)}% chỉ tiêu doanh số tháng — tiến độ chung đáng lo ngại, cần rà soát và hỗ trợ khẩn cấp.`);
+    }
+    if(d.revPrev > 0){
+      const change = (d.revP - d.revPrev) / d.revPrev * 100;
+      if(change >= 15) sentences.push(`Doanh số kỳ này tăng ${change.toFixed(1)}% so với kỳ trước — xu hướng tích cực.`);
+      else if(change <= -15) sentences.push(`Doanh số kỳ này giảm ${Math.abs(change).toFixed(1)}% so với kỳ trước — cần tìm hiểu nguyên nhân chung của team.`);
+    }
+    sentences.push(`${d.topPerformers.length}/${d.n} nhân viên đạt/vượt chỉ tiêu tháng, ${d.needAttention.length}/${d.n} nhân viên dưới 50% chỉ tiêu` + (d.noTargetCount ? `, ${d.noTargetCount} nhân viên chưa có chỉ tiêu` : '') + '.');
+    if(d.missingProducts.length){
+      sentences.push(`Toàn team chưa phát sinh doanh số ở ${d.missingProducts.length} sản phẩm trong danh mục (vd: ${d.missingProducts.slice(0,3).join(', ')}).`);
+    }
+    return sentences.join(' ');
+  }
+
+  function buildTeamReportEmailHtml(d, comment){
+    const range = d.range, prevRange = d.prevRange;
+    const pctColor = d.pct===null ? '#6b7280' : d.pct>=100 ? '#16a34a' : d.pct>=50 ? '#d97706' : '#dc2626';
+    const kpiColor = d.kpiAvgPct===null ? '#6b7280' : d.kpiAvgPct>=100 ? '#16a34a' : d.kpiAvgPct>=50 ? '#d97706' : '#dc2626';
+    const card = (label, big, sub, subColor) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:8px;">
+        <tr><td style="background:#f4f6fb;border-left:4px solid #2563eb;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;color:#2563eb;letter-spacing:.3px;">${label}</div>
+          <div style="font-size:17px;font-weight:700;color:#111827;margin-top:3px;">${big}</div>
+          <div style="font-size:12px;color:${subColor||'#6b7280'};margin-top:2px;">${sub}</div>
+        </td></tr>
+      </table>`;
+    const rankRowsHtml = d.empRowsBC.map(e => {
+      const c = e.target===0 ? '#6b7280' : e.pct>=100 ? '#16a34a' : e.pct>=50 ? '#d97706' : '#dc2626';
+      return `<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;">#${e.rank} ${escSvg(e.name)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtMoney(e.revP)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;color:${c};text-align:right;">${e.target===0 ? 'Chưa có CT' : (e.pct===null?'—':e.pct.toFixed(1)+'%')}</td>
+      </tr>`;
+    }).join('');
+    const kpiRowsHtml = d.kpiTeamItems.length ? d.kpiTeamItems.map(it => {
+      const c = it.pct===null ? '#6b7280' : it.pct>=100 ? '#16a34a' : it.pct>=50 ? '#d97706' : '#dc2626';
+      return `<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;">${escSvg(it.section)}${it.product?' <span style="color:#6b7280;">('+escSvg(it.product)+')</span>':''}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtKpiValue(it, it.target)}${it.unit && it.unit!=='doanh số' ? ' '+it.unit : ''}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtKpiValue(it, it.actual)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;color:${c};text-align:right;">${it.pct===null?'—':it.pct.toFixed(1)+'%'}</td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="4" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Chưa có dữ liệu KPI chi tiết (Trang tính2)</td></tr>`;
+    const prodRowsHtml = d.topProducts.length ? d.topProducts.map(p => `
+      <tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;">${escSvg(p.name||p.code||'Không rõ')}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtNum(p.qty)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtMoney(p.rev)}</td>
+      </tr>`).join('') : `<tr><td colspan="3" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Không có dữ liệu trong kỳ này</td></tr>`;
+
+    return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#1f2937;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+  <div style="background:#0f1729;padding:18px 22px;">
+    <div style="color:#93c5fd;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">CPC1 Hà Nội · OTC-CKI-KVI</div>
+    <div style="color:#ffffff;font-size:19px;font-weight:700;margin-top:4px;">Báo cáo tổng hợp team (${d.n} nhân viên)</div>
+    <div style="color:#9aa5bd;font-size:12.5px;margin-top:3px;">Kỳ ${escSvg(range.label)} · So với kỳ trước ${fmtDate(prevRange.start)}${prevRange.start.getTime()!==prevRange.end.getTime() ? ' – ' + fmtDate(prevRange.end) : ''}</div>
+  </div>
+  <div style="padding:18px 22px;">
+    ${card('💰 DOANH SỐ &amp; KPI THÁNG (TOÀN TEAM)', fmtMoney(d.revM) + ' / ' + (d.target?fmtMoney(d.target):'chưa có chỉ tiêu'), 'Kỳ trước: ' + fmtMoney(d.revPrev) + (d.pct!==null?' · '+d.pct.toFixed(1)+'% chỉ tiêu':''), pctColor)}
+    ${card('📊 KPI CHI TIẾT (TB CÁC HẠNG MỤC)', d.kpiAvgPct===null?'—':d.kpiAvgPct.toFixed(1)+'%', d.kpiTeamItems.length ? d.kpiTeamItems.length+' hạng mục · '+d.kpiAchieved+' đạt ≥100%'+(d.kpiUrgent>0?' · '+d.kpiUrgent+' dưới 50%':'') : 'Chưa có dữ liệu Trang tính2', kpiColor)}
+    ${card('🧑‍🤝‍🧑 KHÁCH HÀNG ĐÃ GHÉ THĂM', d.khVisited + ' / ' + d.khQuotaTeam + ' KH', 'Kỳ trước: ' + d.khVisitedPrev + ' KH · Định mức 15 KH/ngày/người', null)}
+    ${card('🏆 XẾP HẠNG NHÂN VIÊN', d.topPerformers.length + '/' + d.n + ' đạt/vượt chỉ tiêu', d.needAttention.length + ' nhân viên dưới 50% chỉ tiêu' + (d.noTargetCount?' · '+d.noTargetCount+' chưa có chỉ tiêu':''), d.needAttention.length>0?'#dc2626':'#16a34a')}
+    <div style="font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">Xếp hạng doanh số toàn bộ nhân viên (kỳ này)</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+      <tr style="background:#f4f6fb;">
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;">Nhân viên</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">Doanh số kỳ này</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">% chỉ tiêu tháng</td>
+      </tr>
+      ${rankRowsHtml}
+    </table>
+    <div style="font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">KPI chi tiết theo hạng mục (cộng dồn cả team)</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+      <tr style="background:#f4f6fb;">
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;">Hạng mục</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">Chỉ tiêu</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">Thực đạt</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">% đạt</td>
+      </tr>
+      ${kpiRowsHtml}
+    </table>
+    <div style="font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">Top sản phẩm bán chạy toàn team (kỳ này)</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+      <tr style="background:#f4f6fb;">
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;">Sản phẩm</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">SL</td>
+        <td style="padding:6px 8px;font-size:11px;font-weight:700;color:#374151;text-align:right;">Doanh thu</td>
+      </tr>
+      ${prodRowsHtml}
+    </table>
+    ${d.missingProducts.length ? `
+    <div style="font-size:12px;font-weight:700;color:#374151;margin:14px 0 6px;">Sản phẩm chưa có doanh số (toàn team, tính từ trước đến nay)</div>
+    <div style="font-size:12.5px;color:#374151;line-height:1.6;">${d.missingProducts.map(escSvg).join(', ')}</div>` : ''}
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 14px;margin-top:14px;font-size:12.5px;line-height:1.6;color:#374151;">
+      <b>🤖 Nhận xét đánh giá:</b> ${escSvg(comment)}
+    </div>
+    <div style="font-size:12.5px;color:#374151;margin-top:16px;line-height:1.6;">Thân mến,<br>Quản lý kinh doanh CPC1 Hà Nội</div>
+  </div>
+</div>`;
+  }
+
+  function previewTeamReportHtml(){
+    const html = teamReportCache && teamReportCache.html;
+    if(!html) return;
+    const w = window.open('', '_blank');
+    if(!w){ alert('Trình duyệt đang chặn cửa sổ popup — hãy cho phép popup để xem trước.'); return; }
+    w.document.open();
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Xem trước báo cáo tổng hợp team</title></head><body style="background:#eef1f6;padding:24px;">' + html + '</body></html>');
+    w.document.close();
+  }
+
+  function copyTeamReportHtml(){
+    const entry = teamReportCache;
+    if(!entry) return;
+    const html = entry.html;
+    const openComposeIfPossible = () => {
+      if(!entry.email) return;
+      const link = buildRoundcubeComposeLink(entry.email, entry.subject);
+      window.open(link, '_blank');
+    };
+    const onOk = () => { alert('Đã copy báo cáo tổng hợp team (định dạng HTML)' + (entry.email ? '.\nĐang mở khung soạn thư mới — bấm vào phần nội dung rồi Ctrl+V để dán.' : '.\nBật chế độ soạn thư HTML rồi dán (Ctrl+V) vào phần nội dung.')); openComposeIfPossible(); };
+    const onFailRich = () => alert('Không copy được ở định dạng HTML — hãy dùng nút "👁️ Xem trước", bôi đen toàn bộ nội dung (Ctrl+A) rồi copy (Ctrl+C) thủ công từ tab đó.');
+    const onOkSourceOnly = () => alert('Đã copy MÃ NGUỒN HTML (dạng chữ).\nChỉ dùng được nếu khung soạn thư có chế độ "Chèn mã nguồn / Source code" — dán trực tiếp vào nội dung thường sẽ ra chữ thô.');
+
+    const container = document.createElement('div');
+    container.contentEditable = 'true';
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    let ok = false;
+    try{
+      const range = document.createRange();
+      range.selectNodeContents(container);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      ok = document.execCommand('copy');
+      sel.removeAllRanges();
+    }catch(err){ ok = false; }
+    document.body.removeChild(container);
+
+    if(ok){ onOk(); return; }
+    if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+      navigator.clipboard.writeText(html).then(onOkSourceOnly).catch(() => { fallbackCopyText(html) ? onOkSourceOnly() : onFailRich(); });
+    } else {
+      fallbackCopyText(html) ? onOkSourceOnly() : onFailRich();
+    }
+  }
+
+  function renderTeamReportBox(empRowsBC, range, prevRange, mKey){
+    const box = document.getElementById('teamReportBox');
+    if(!box) return;
+    const asmInput = document.getElementById('asmName');
+    const asmName = (asmInput ? asmInput.value : '').trim();
+    const asmEmail = asmName ? findEmployeeEmail(asmName) : '';
+
+    const d = buildTeamReportData(empRowsBC, range, prevRange, mKey);
+    const comment = genTeamComment(d);
+
+    const subject = 'Báo cáo tổng hợp doanh số team - ' + range.label;
+    const bodyLines = [
+      'Kính gửi chị ' + (asmName || 'ASM') + ',',
+      '',
+      'Đây là báo cáo tổng hợp kết quả kinh doanh team OTC-CKI-KVI (CPC1 Hà Nội) kỳ ' + range.label +
+        ' (so với kỳ trước ' + fmtDate(prevRange.start) + (prevRange.start.getTime()!==prevRange.end.getTime() ? ' – ' + fmtDate(prevRange.end) : '') + '):',
+      '',
+      '1) Tổng quan team (' + d.n + ' nhân viên)',
+      '- Tổng doanh số kỳ này: ' + fmtMoney(d.revP) + ' (kỳ trước: ' + fmtMoney(d.revPrev) + ')',
+      '- Doanh số tháng / chỉ tiêu: ' + fmtMoney(d.revM) + ' / ' + (d.target ? fmtMoney(d.target) : 'chưa có chỉ tiêu') + (d.pct!==null ? ' (' + d.pct.toFixed(1) + '%)' : ''),
+      '- Tổng số đơn hàng kỳ này: ' + fmtNum(d.ordCount) + ' (kỳ trước: ' + fmtNum(d.ordCountPrev) + ')',
+      '- Tổng khách hàng đã ghé thăm kỳ này: ' + fmtNum(d.khVisited) + ' / định mức ' + fmtNum(d.khQuotaTeam) + ' (kỳ trước: ' + fmtNum(d.khVisitedPrev) + ')',
+      '- KPI trung bình các hạng mục: ' + (d.kpiAvgPct===null?'—':d.kpiAvgPct.toFixed(1)+'%') + (d.kpiTeamItems.length ? ' (' + d.kpiAchieved + '/' + d.kpiTeamItems.length + ' hạng mục đạt ≥100%)' : ''),
+      '',
+      '2) Xếp hạng toàn bộ nhân viên theo doanh số kỳ này',
+      ...(d.empRowsBC.length ? d.empRowsBC.map(e => '- #' + e.rank + ' ' + e.name + ': ' + fmtMoney(e.revP) + (e.target ? (e.pct!==null ? ' (' + e.pct.toFixed(1) + '% chỉ tiêu tháng)' : '') : ' (chưa có chỉ tiêu)')) : ['- Không có dữ liệu']),
+      '',
+      '3) Nhân viên cần chú ý (dưới 50% chỉ tiêu tháng)',
+      ...(d.needAttention.length ? d.needAttention.map(e => '- ' + e.name + ': ' + (e.pct!==null ? e.pct.toFixed(1)+'%' : '—')) : ['- Không có nhân viên nào dưới 50% chỉ tiêu']),
+      '',
+      '4) Top sản phẩm bán chạy toàn team',
+      ...(d.topProducts.length ? d.topProducts.map(p => '- ' + (p.name||p.code) + ': ' + fmtNum(p.qty) + ' SL — ' + fmtMoney(p.rev)) : ['- Không có dữ liệu trong kỳ này']),
+      '',
+      '5) Sản phẩm chưa có doanh số (toàn team, tính từ trước đến nay)',
+      d.missingProducts.length ? '- ' + d.missingProducts.join(', ') : '- Đã bán đủ danh mục đã xác định',
+      '',
+      '6) Nhận xét đánh giá',
+      '- ' + comment,
+      '',
+      'Thân mến,',
+      'Quản lý kinh doanh CPC1 Hà Nội'
+    ];
+    const body = bodyLines.join('\n');
+    const link = buildRoundcubeComposeLink(asmEmail, subject, body);
+    const html = buildTeamReportEmailHtml(d, comment);
+    teamReportCache = { html, email: asmEmail, subject, bodyText: body, data: d };
+
+    box.innerHTML =
+      '<div class="status-line ' + (asmEmail ? 'ok' : 'err') + '" style="margin:10px 0;">' +
+        (asmEmail
+          ? ('Email ASM: ' + escSvg(asmEmail))
+          : ('Chưa tìm thấy email cho tên "' + escSvg(asmName) + '" — kiểm tra đúng tên đã thêm vào Google Sheet Email nhân viên ở trên, rồi bấm "↻ Làm mới".')) +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;">' +
+        '<div class="compare-card"><div class="compare-label">💰 Doanh số kỳ này</div><div class="compare-current">' + fmtCompact(d.revP) + '</div><div class="compare-prev">Kỳ trước: ' + fmtCompact(d.revPrev) + '</div></div>' +
+        '<div class="compare-card"><div class="compare-label">🎯 % chỉ tiêu tháng</div><div class="compare-current">' + (d.pct===null ? '—' : d.pct.toFixed(1)+'%') + '</div><div class="compare-prev">' + fmtCompact(d.revM) + ' / ' + (d.target?fmtCompact(d.target):'—') + '</div></div>' +
+        '<div class="compare-card"><div class="compare-label">📊 KPI trung bình</div><div class="compare-current">' + (d.kpiAvgPct===null?'—':d.kpiAvgPct.toFixed(1)+'%') + '</div><div class="compare-prev">' + (d.kpiTeamItems.length ? d.kpiAchieved+'/'+d.kpiTeamItems.length+' đạt ≥100%' : 'Chưa có dữ liệu') + '</div></div>' +
+        '<div class="compare-card"><div class="compare-label">🧑‍🤝‍🧑 KH đã ghé thăm</div><div class="compare-current">' + fmtNum(d.khVisited) + '</div><div class="compare-prev">Định mức: ' + fmtNum(d.khQuotaTeam) + '</div></div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+        '<button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="previewTeamReportHtml();" title="Xem trước báo cáo dạng HTML ở tab mới">👁️ Xem trước</button>' +
+        '<button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="copyTeamReportHtml();" title="Copy nội dung HTML + tự mở sẵn khung soạn thư mới (đã điền người nhận/tiêu đề) — chỉ cần bấm vào nội dung rồi Ctrl+V">📋✉️ Soạn HTML</button>' +
+        (link
+          ? '<a href="' + link + '" target="_blank" rel="noopener" class="btn-upload" style="text-decoration:none;">✉️ Gửi báo cáo tổng hợp cho ASM (Roundcube)</a>'
+          : '<span class="btn-upload" style="opacity:.45;cursor:not-allowed;">✉️ Gửi báo cáo tổng hợp (chưa có email ASM)</span>') +
+      '</div>';
+  }
 
   function renderBaoCaoPage(){
     const range = getPeriodRange();
@@ -4180,6 +5210,8 @@
 
     const emailCount = empRowsBC.filter(e => e.email).length;
     document.getElementById('baocaoBadge').textContent = emailCount + '/' + empRowsBC.length + ' có email';
+
+    renderTeamReportBox(empRowsBC, range, prevRange, mKey);
 
     document.getElementById('baocaoWrap').innerHTML = empRowsBC.map((e, idx) => {
       const comment = genEmployeeComment(e);
@@ -4586,6 +5618,8 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
       ordersTrend = ordersTrend.concat(mapOrderRowsGSheet(rows));
     }
     ordersTrend = ordersTrend.filter(o => !isExcludedName(o.name));
+    // Cũng tự fetch riêng, không đi qua `orders` toàn cục đã lọc theo người đăng nhập — lọc lại thủ công.
+    ordersTrend = scopeToCurrentUser(ordersTrend, o => o.name);
     const custMap = {};
     ordersTrend.forEach(o => {
       const kh = o.khCode || o.khName || 'unknown';
@@ -4918,6 +5952,12 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     if(printBtn) printBtn.addEventListener('click', function(){ window.print(); });
   })();
 
+  // ---------- PWA: cho nhân viên "Thêm vào màn hình chính" để mở như 1 app riêng (có icon, chạy full màn
+  // hình, không cần tải qua App Store/Play Store). Dùng meta tag (đã thêm ở <head>) cho iOS Safari; còn
+  // Android Chrome cần 1 "Web App Manifest" — vì Apps Script chỉ phục vụ được đúng 1 file HTML nên không
+  // host riêng được file manifest.json, ta tự tạo "manifest ảo" bằng Blob ngay trong trình duyệt. Icon lấy
+  // lại đúng logo CPC1HN đã có sẵn trong trang (không cần nhúng thêm ảnh base64 lần nữa).
+
   // ---------- init ----------
   document.getElementById('dateInput').value = ymd(selectedDate);
   populateMonthSelect();
@@ -4927,6 +5967,10 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   try{
     const savedUrl = localStorage.getItem(LAST_SHEET_URL_KEY);
     if(savedUrl) document.getElementById('gsheetUrl').value = savedUrl;
+  }catch(e){}
+  try{
+    const savedAsmName = localStorage.getItem(ASM_NAME_KEY);
+    if(savedAsmName) document.getElementById('asmName').value = savedAsmName;
   }catch(e){}
   if(document.querySelector('#sourceTabs button[data-src="gsheet"]').classList.contains('active')){
     loadFromGoogleSheet(false);
@@ -4938,6 +5982,13 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     if(savedKpiUrl) document.getElementById('kpiSheetUrl').value = savedKpiUrl;
   }catch(e){}
   loadKpiSheet(false);
+
+  // Tự động tải Bảng hệ số sản phẩm ngay khi mở file (khôi phục link đã dùng lần trước nếu có).
+  try{
+    const savedHeSoUrl = localStorage.getItem(HESO_LAST_URL_KEY);
+    if(savedHeSoUrl) document.getElementById('heSoSheetUrl').value = savedHeSoUrl;
+  }catch(e){}
+  loadHeSoSheet(false);
 
   // Tự động tải email nhân viên ngay khi mở file (khôi phục link đã dùng lần trước nếu có).
   try{
