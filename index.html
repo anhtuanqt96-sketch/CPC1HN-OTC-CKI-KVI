@@ -465,6 +465,7 @@
     <div class="nav-group-label hide-on-collapse">KHÁC</div>
     <nav class="nav-list">
       <div class="navitem" data-page="baocao"><span class="ic">📄</span><span class="hide-on-collapse">Báo cáo</span></div>
+      <div class="navitem" data-page="tailieu"><span class="ic">📚</span><span class="hide-on-collapse">Tài liệu</span></div>
     </nav>
 
     <div class="nav-group-label hide-on-collapse">AI</div>
@@ -532,7 +533,7 @@
             <div class="controls">
               <div class="field">
                 <label>Link / ID Google Sheet</label>
-                <input type="text" id="gsheetUrl" value="https://docs.google.com/spreadsheets/d/1ep_BaU8kV2KODNGAh0MrsQEywPwQk3qGbbXRpfmpsh4/edit?usp=sharing">
+                <input type="text" id="gsheetUrl" value="https://docs.google.com/spreadsheets/d/1S9zBa-JXbawGeDS4Zhe8VoU8yaDxHzR3HfN4W74_yfk/edit?usp=sharing">
               </div>
               <button class="btn-upload" id="btnLoadGSheet">Tải dữ liệu</button>
               <button class="btn-secondary" id="btnRefreshGSheet">↻ Làm mới</button>
@@ -996,6 +997,13 @@
         </div>
       </div>
 
+      <!-- ===== Trang Tài liệu ===== -->
+      <div id="page-tailieu" class="page-view" style="display:none;">
+        <div class="page-h1">Tài liệu <span class="accent">tham khảo</span></div>
+        <div class="page-sub" id="tailieuSub">Danh sách tài liệu lấy từ tab "Tài liệu" trong Google Sheet nguồn. Bấm vào tên để mở.</div>
+        <div id="tailieuWrap"><div class="attn-empty">Đang tải…</div></div>
+      </div>
+
       <!-- ===== Trang Báo cáo ===== -->
       <div id="page-baocao" class="page-view" style="display:none;">
         <div class="page-h1">Báo cáo <span class="accent">hiệu suất nhân viên</span></div>
@@ -1352,7 +1360,7 @@
   });
 
   // ---------- điều hướng trang (sidebar) ----------
-  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', aicoach:'AI Sales Coach' };
+  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
   let currentPage = 'tongquan';
   document.querySelectorAll('.navitem[data-page]').forEach(item => {
     item.addEventListener('click', function(){
@@ -1371,6 +1379,7 @@
         if(page==='baocao') renderBaoCaoPage();
         if(page==='aicoach') renderAiCoachPage();
       }
+      if(page==='tailieu') renderTaiLieuPage();
     });
   });
 
@@ -1386,6 +1395,7 @@
     if(currentPage === 'cungtuyen') renderCungTuyenPage();
     if(currentPage === 'kpi') renderKpiPage();
     if(currentPage === 'baocao') renderBaoCaoPage();
+    if(currentPage === 'tailieu') renderTaiLieuPage();
   });
 
   // ---------- chuông thông báo (nhân viên khẩn cấp KPI < 50% chỉ tiêu tháng) ----------
@@ -5958,6 +5968,43 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   // host riêng được file manifest.json, ta tự tạo "manifest ảo" bằng Blob ngay trong trình duyệt. Icon lấy
   // lại đúng logo CPC1HN đã có sẵn trong trang (không cần nhúng thêm ảnh base64 lần nữa).
 
+  // ================= TRANG TÀI LIỆU =================
+  // Đọc tab "Tài liệu" trong Google Sheet nguồn. Cột: A=Tên tài liệu, B=Link, C=Nhóm (tuỳ chọn), D=Ghi chú (tuỳ chọn).
+  // Dòng tiêu đề (cột B không phải link) tự bị bỏ qua. Thêm/sửa tài liệu chỉ cần sửa trong Sheet, không phải sửa code.
+  let taiLieuCache = null;
+  async function renderTaiLieuPage(force){
+    const wrap = document.getElementById('tailieuWrap');
+    if(!wrap) return;
+    const sheetId = extractSheetId(document.getElementById('gsheetUrl').value);
+    if(!sheetId){ wrap.innerHTML = '<div class="attn-empty">Chưa có link Google Sheet nguồn.</div>'; return; }
+    try{
+      if(!taiLieuCache || force) taiLieuCache = await fetchTab(sheetId, 'Tài liệu', true);
+    }catch(e){
+      wrap.innerHTML = '<div class="attn-empty">Không đọc được tab <b>"Tài liệu"</b>. Hãy tạo tab tên đúng <b>Tài liệu</b> trong Google Sheet nguồn (cột A: Tên tài liệu, B: Link, C: Nhóm, D: Ghi chú).</div>';
+      return;
+    }
+    const q = (document.getElementById('sidebarSearch').value || '').trim().toLowerCase();
+    const items = (taiLieuCache || []).map(r => ({
+      name: (r[0]||'').toString().trim(), link: (r[1]||'').toString().trim(),
+      group: (r[2]||'').toString().trim() || 'Khác', note: (r[3]||'').toString().trim()
+    })).filter(x => x.name && /^https?:\/\//i.test(x.link))
+      .filter(x => !q || (x.name+' '+x.group+' '+x.note).toLowerCase().indexOf(q) > -1);
+    if(!items.length){
+      wrap.innerHTML = '<div class="attn-empty">' + (q ? 'Không có tài liệu phù hợp với từ khoá tìm kiếm.' : 'Tab "Tài liệu" chưa có dòng nào (cột A: Tên, cột B: Link bắt đầu bằng http).') + '</div>';
+      return;
+    }
+    const groups = {};
+    items.forEach(x => { (groups[x.group] = groups[x.group] || []).push(x); });
+    wrap.innerHTML = Object.keys(groups).map(g =>
+      '<div class="panel"><h3 class="section-title">📁 ' + escSvg(g) + ' <span class="badge">' + groups[g].length + ' tài liệu</span></h3>' +
+      '<div class="attn-list" style="max-height:none;">' + groups[g].map(x =>
+        '<a class="attn-card" href="' + escSvg(x.link) + '" target="_blank" rel="noopener" style="display:block;">' +
+        '<div class="attn-name">📄 ' + escSvg(x.name) + '</div>' +
+        (x.note ? '<div class="attn-stat">' + escSvg(x.note) + '</div>' : '') + '</a>'
+      ).join('') + '</div></div>'
+    ).join('');
+  }
+
   // ---------- init ----------
   document.getElementById('dateInput').value = ymd(selectedDate);
   populateMonthSelect();
@@ -5966,7 +6013,7 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   // rồi gọi loadFromGoogleSheet() luôn — không cần bấm "Tải dữ liệu" mỗi lần mở lại trang.
   try{
     const savedUrl = localStorage.getItem(LAST_SHEET_URL_KEY);
-    if(savedUrl) document.getElementById('gsheetUrl').value = savedUrl;
+    if(savedUrl && savedUrl.indexOf('1ep_BaU8kV2KODNGAh0MrsQEywPwQk3qGbbXRpfmpsh4') === -1) document.getElementById('gsheetUrl').value = savedUrl; // bỏ qua link Sheet cũ đã lưu trong trình duyệt, dùng Sheet nguồn mới
   }catch(e){}
   try{
     const savedAsmName = localStorage.getItem(ASM_NAME_KEY);
