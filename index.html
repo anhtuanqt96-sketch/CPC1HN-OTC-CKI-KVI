@@ -1224,8 +1224,13 @@
 
   // Nhân sự không thuộc team này — lọc bỏ hoàn toàn khỏi dữ liệu (không tính vào doanh số/lượt ghé/kế hoạch của team).
   const EXCLUDED_NAMES = ['nguyễn hồng sơn', 'đinh nguyễn bình nguyên', 'nguyễn văn nghĩa'];
+  // Chỉ tính 6 người của team OTC-CKI-KVI (Sheet nguồn chung chứa cả nhân sự các nhóm khác — lọc bỏ hết, kể cả
+  // người mới thêm vào Sheet). Muốn thêm/bớt người trong team: sửa danh sách TEAM_NAMES (viết thường, đủ dấu).
+  const TEAM_NAMES = ['mai anh tuấn', 'dương trung hiếu', 'hồ thị tố uyên', 'lý nhật trinh', 'nguyễn đức tú', 'trần minh tân'];
   function isExcludedName(name){
-    return EXCLUDED_NAMES.includes((name||'').toString().trim().toLowerCase());
+    const n = (name||'').toString().normalize('NFC').trim().toLowerCase().replace(/\s+/g,' ');
+    if(!n) return false;
+    return EXCLUDED_NAMES.includes(n) || !TEAM_NAMES.includes(n);
   }
 
   function eachDate(s, e){
