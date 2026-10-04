@@ -290,7 +290,7 @@
   .compare-delta.warn{ color:#f87171; }
   .compare-delta.muted{ color:var(--muted); font-weight:600; }
 
-  /* ===== KPI đa hạng mục theo nhân viên (Trang tính2) ===== */
+  /* ===== KPI đa hạng mục theo nhân viên (tab Tháng) ===== */
   .kpi-emp-details{ background:var(--panel2); border:1px solid var(--border); border-radius:12px; margin-bottom:10px; overflow:hidden; }
   .kpi-emp-summary{ padding:13px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .kpi-emp-summary::marker, .kpi-emp-summary::-webkit-details-marker{ color:var(--muted); }
@@ -1332,6 +1332,7 @@
     try{ return JSON.parse(localStorage.getItem(TARGET_KEY) || '{}'); }catch(e){ return {}; }
   }
   function saveTargets(obj){ localStorage.setItem(TARGET_KEY, JSON.stringify(obj)); }
+  // Chỉ tiêu doanh số từng người theo tháng — nạp từ Google Sheet chỉ tiêu/KPI (các tab "Tháng N") trong loadKpiSheet.
   function getTarget(name, mKey){ const t = loadTargets(); return (t[mKey] && t[mKey][name]) || 0; }
   function setTarget(name, mKey, value){
     const t = loadTargets();
@@ -1352,9 +1353,7 @@
       'Dương Trung Hiếu': 20000000,
       'Mai Anh Tuấn': 70000000
     };
-    Object.entries(defaults).forEach(([name, val]) => {
-      if(!getTarget(name, mKey)) setTarget(name, mKey, val);
-    });
+    // (đã tắt) Chỉ tiêu nay lấy từ Google Sheet chỉ tiêu + TEAM_TARGETS, không còn gán số cứng theo từng người.
   }
 
   // ---------- sidebar collapse (cosmetic) ----------
@@ -2416,6 +2415,7 @@
 
   // ---------- render ----------
   function render(){
+    syncKpiRows();
     if(!document.getElementById('dateInput').value){
       document.getElementById('dateInput').value = ymd(selectedDate);
     }
@@ -2843,6 +2843,7 @@
 
   // ================= TRANG NHÂN VIÊN =================
   function renderNhanVienPage(){
+    syncKpiRows();
     const range = getPeriodRange();
     const prevRange = getPreviousRange(range);
     const mStart = startOfMonth(selectedDate), mEnd = endOfMonth(selectedDate), mKey = monthKey(selectedDate);
@@ -2924,6 +2925,13 @@
   const KPI_LAST_URL_KEY = 'salesDashboard.lastKpiSheetUrl';
   let kpiAutoRefreshTimer = null;
   let kpiDetailRows = []; // KPI đa hạng mục từ Trang tính2: [{stt,maNV,name,viTri,khuVuc,chuyenKhoa,thamNien,tinhTrang,items:[...]}]
+  let kpiRowsByMonth = {}; // { '2026-09': [dòng KPI của tháng đó] } — mỗi tháng 1 tab "Tháng N" trong Sheet KPI
+  function syncKpiRows(){
+    const keys = Object.keys(kpiRowsByMonth).sort();
+    if(!keys.length) return;
+    const mk = monthKey(selectedDate);
+    kpiDetailRows = kpiRowsByMonth[mk] || kpiRowsByMonth[keys[keys.length-1]];
+  }
 
   // Lưu các hạng mục KPI "Nhập tay" (VD Group Zalo KH — không có sản phẩm để tự đối chiếu với Đơn Kế
   // Toán) — nhập ở trang KPI, lưu theo trình duyệt này (giống cách lưu Chỉ tiêu tháng), theo từng
@@ -3176,33 +3184,41 @@
     document.getElementById('btnLoadKpiSheet').disabled = true;
     setKpiStatus('Đang tải chỉ tiêu từ Google Sheet…', 'loading');
     try{
-      const [rows, detailRowsRaw] = await Promise.all([
-        fetchTab(sheetId, 'Trang tính1', forceRefresh).catch(()=>[]),
-        fetchTab(sheetId, 'Trang tính2', forceRefresh).catch(()=>[])
-      ]);
-      const mKey = monthKey(new Date());
-      let count = 0;
-      rows.forEach(r => {
-        const name = (r[0]||'').toString().trim();
-        if(!name || isExcludedName(name)) return;
-        const val = parseVNNum(r[1]);
-        setTarget(name, mKey, val);
-        count++;
+      // Mỗi tháng 1 tab "Tháng N" (cấu trúc cột như Trang tính2 cũ, có thêm cột "Ngày nhận việc"). Năm = năm hiện tại.
+      // Chỉ tiêu doanh số từng người = ô "Chỉ tiêu Doanh số" của dòng KHÔNG phải SS (dòng SS là tổng cả team).
+      const yr = new Date().getFullYear();
+      const tabResults = await Promise.all([7,8,9,10,11,12].map(m =>
+        fetchTab(sheetId, 'Tháng ' + m, forceRefresh).then(r => ({m, rows:r})).catch(() => ({m, rows:[]}))));
+      kpiRowsByMonth = {};
+      let count = 0, latestKey = '';
+      tabResults.forEach(({m, rows}) => {
+        if(!rows || !rows.length) return;
+        const shift = detectKpi2ColShift(rows);
+        const parsed = rows.map(r => parseKpi2Row(r, shift)).filter(r => r && r.name && !isExcludedName(r.name));
+        if(!parsed.length) return;
+        canonicalizeKpiItemNames(parsed);
+        const mk = yr + '-' + pad(m);
+        kpiRowsByMonth[mk] = parsed;
+        if(mk > latestKey) latestKey = mk;
+        const done = {};
+        const setFrom = r => {
+          const it = r.items.find(i => i.unit === 'doanh số');
+          setTarget(r.name, mk, it ? it.target : 0);
+          done[normalizeName(r.name)] = true;
+        };
+        parsed.filter(r => (r.viTri||'').trim().toUpperCase() !== 'SS').forEach(setFrom);
+        parsed.filter(r => (r.viTri||'').trim().toUpperCase() === 'SS' && !done[normalizeName(r.name)]).forEach(setFrom);
+        if(mk === latestKey) count = Object.keys(done).length;
       });
-
-      // Trang tính2: bảng KPI đa hạng mục chi tiết theo từng nhân viên (không còn chỉ tính theo doanh số).
-      const kpi2Shift = detectKpi2ColShift(detailRowsRaw);
-      kpiDetailRows = detailRowsRaw
-        .map(r => parseKpi2Row(r, kpi2Shift))
-        .filter(r => r && r.name && !isExcludedName(r.name));
-      canonicalizeKpiItemNames(kpiDetailRows);
+      kpiDetailRows = kpiRowsByMonth[latestKey] || [];
+      syncKpiRows();
       renderLoginTiles();
 
       try{ localStorage.setItem(KPI_LAST_URL_KEY, document.getElementById('kpiSheetUrl').value); }catch(e){}
       const now = new Date();
       const parts = [];
       parts.push(count > 0 ? ('Chỉ tiêu doanh số: ' + count + ' người') : 'Chỉ tiêu doanh số: không thấy dữ liệu (Trang tính1)');
-      parts.push(kpiDetailRows.length > 0 ? ('KPI chi tiết: ' + kpiDetailRows.length + ' dòng (Trang tính2)') : 'KPI chi tiết: không thấy dữ liệu (Trang tính2)');
+      parts.push(kpiDetailRows.length > 0 ? ('KPI chi tiết: ' + kpiDetailRows.length + ' dòng (tab Tháng)') : 'KPI chi tiết: không thấy dữ liệu (tab Tháng)');
       if(kpi2Shift !== 0){
         parts.push('⚠️ phát hiện Trang tính2 bị thêm/xoá 1 cột — đã tự bù trừ (lệch ' + kpi2Shift + ')');
       }
@@ -3475,7 +3491,7 @@
     return ordersInMonth.filter(o => normalizeName(o.name) === normalizeName(name));
   }
 
-  // Tính "thực đạt" cho 1 hạng mục KPI (Trang tính2) dựa trên Đơn Kế Toán trong tháng của nhân viên đó.
+  // Tính "thực đạt" cho 1 hạng mục KPI (tab Tháng) dựa trên Đơn Kế Toán trong tháng của nhân viên đó.
   // Mục không gắn sản phẩm cụ thể (vd Group Zalo KH) không thể tính tự động -> trả về null.
   function computeKpiActual(item, empOrdersInMonth){
     if(item.manual) return null;
@@ -3506,11 +3522,12 @@
   }
 
   function renderKpiPage(){
+    syncKpiRows();
     const mStart = startOfMonth(selectedDate), mEnd = endOfMonth(selectedDate), mKey = monthKey(selectedDate);
     const ordersInMonth = orders.filter(o => inRange(o.date, mStart, mEnd));
 
     document.getElementById('kpiSub').textContent =
-      'KPI tháng ' + mKey + ' · nguồn chỉ tiêu: Google Sheet KPI (Trang tính2) · thực đạt tự động khớp từ Đơn Kế Toán theo tên sản phẩm' +
+      'KPI tháng ' + mKey + ' · nguồn chỉ tiêu: Google Sheet KPI (tab Tháng) · thực đạt tự động khớp từ Đơn Kế Toán theo tên sản phẩm' +
       (soTayDataAvailable() ? ' · riêng mục Doanh số có thêm số liệu 📝 theo Đơn Sổ tay để đối chiếu (không cộng gộp 2 nguồn)' : '');
     document.getElementById('kpiTableBadge').textContent = 'Tháng ' + (mStart.getMonth()+1) + '/' + mStart.getFullYear();
 
@@ -3559,7 +3576,7 @@
         <div class="kpi-icon blue">🧾</div>
         <div class="kpi-label">Nhân viên có dữ liệu KPI</div>
         <div class="kpi-value">${distinctPeople}</div>
-        <div class="kpi-sub muted">${entries.length} dòng chỉ tiêu (Trang tính2)</div>
+        <div class="kpi-sub muted">${entries.length} dòng chỉ tiêu (tab Tháng)</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon purple">📋</div>
@@ -3586,7 +3603,7 @@
     if(entries.length === 0){
       wrap.innerHTML = searchTerm && kpiDetailRows.length
         ? '<div class="attn-empty">Không tìm thấy nhân viên phù hợp với từ khoá tìm kiếm.</div>'
-        : '<div class="attn-empty">Chưa có dữ liệu KPI — hãy tải Google Sheet KPI (Trang tính2) ở trên.</div>';
+        : '<div class="attn-empty">Chưa có dữ liệu KPI — hãy tải Google Sheet KPI (tab Tháng) ở trên.</div>';
       return;
     }
     wrap.innerHTML = entries.map((e, idx) => {
@@ -3694,6 +3711,7 @@
   }
 
   function renderDonHangPage(){
+    syncKpiRows();
     const range = getPeriodRange();
     if(donhangSource === 'ketoan') renderDonHangKeToan(range); else renderDonHangSoTay(range);
   }
@@ -3985,6 +4003,7 @@
   let khCustListCache = [];
   let khRankedCache = [];
   async function renderKhachHangPage(){
+    syncKpiRows();
     const wrapEl = document.getElementById('khDeclineWrap');
     const rankBody = document.querySelector('#khRankTable tbody');
     document.getElementById('khSub').textContent = 'Đang tải dữ liệu 3 tháng gần nhất…';
@@ -4210,6 +4229,7 @@
   // Ngày/Tuần/Tháng đều tính quanh selectedDate (ngày đang chọn ở bộ lọc chung); "Tháng" = từ đầu tháng
   // đến ngày đang chọn (không phải cả tháng), để phản ánh đúng "từ đầu tháng đến giờ".
   function renderCungTuyenPage(){
+    syncKpiRows();
     const dayStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0,0,0,0);
     const dayEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23,59,59,999);
     const weekStart = startOfWeekMonday(selectedDate);
@@ -4408,6 +4428,7 @@
   ];
 
   function renderSanPhamPage(){
+    syncKpiRows();
     const range = getPeriodRange();
     const ordersInPeriod = orders.filter(o => inRange(o.date, range.start, range.end));
 
@@ -4664,7 +4685,7 @@
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${it.manual ? (it.actual!==null ? fmtKpiValue(it, it.actual) : 'Chưa nhập') : fmtKpiValue(it, it.actual)}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;color:${c};text-align:right;">${it.pct===null?'—':it.pct.toFixed(1)+'%'}</td>
       </tr>`;
-    }).join('') : `<tr><td colspan="4" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Chưa có dữ liệu KPI chi tiết (Trang tính2)</td></tr>`;
+    }).join('') : `<tr><td colspan="4" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Chưa có dữ liệu KPI chi tiết (tab Tháng)</td></tr>`;
     const prodRowsHtml = e.topProducts.length ? e.topProducts.map(p => `
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;">${escSvg(p.name||p.code||'Không rõ')}</td>
@@ -4955,7 +4976,7 @@
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;text-align:right;">${fmtKpiValue(it, it.actual)}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;font-weight:700;color:${c};text-align:right;">${it.pct===null?'—':it.pct.toFixed(1)+'%'}</td>
       </tr>`;
-    }).join('') : `<tr><td colspan="4" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Chưa có dữ liệu KPI chi tiết (Trang tính2)</td></tr>`;
+    }).join('') : `<tr><td colspan="4" style="padding:8px;font-size:12px;color:#6b7280;text-align:center;">Chưa có dữ liệu KPI chi tiết (tab Tháng)</td></tr>`;
     const prodRowsHtml = d.topProducts.length ? d.topProducts.map(p => `
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#111827;">${escSvg(p.name||p.code||'Không rõ')}</td>
@@ -5132,6 +5153,7 @@
   }
 
   function renderBaoCaoPage(){
+    syncKpiRows();
     const range = getPeriodRange();
     const prevRange = getPreviousRange(range);
     const mStart = startOfMonth(selectedDate);
@@ -5204,7 +5226,7 @@
 
       const email = findEmployeeEmail(name);
 
-      // KPI chi tiết theo hạng mục (Trang tính2) — thực đạt tự động khớp từ Đơn Kế Toán trong tháng, giống trang KPI.
+      // KPI chi tiết theo hạng mục (tab Tháng) — thực đạt tự động khớp từ Đơn Kế Toán trong tháng, giống trang KPI.
       // Chỉ lấy 1 dòng đại diện (ưu tiên "SS") — tránh hiện trùng/mâu thuẫn khi 1 người có nhiều dòng.
       const kpiRowForEmp = getKpiRowForEmployee(name);
       const kpiItems = kpiRowForEmp ? kpiRowForEmp.items.map(item => {
@@ -5251,7 +5273,7 @@
           ? e.kpiItems.map(it => '- ' + it.section + (it.product ? ' (' + it.product + ')' : '') + ': ' +
               (it.manual ? (it.actual!==null ? fmtKpiValue(it, it.actual) : 'Chưa nhập') : fmtKpiValue(it, it.actual)) + ' / ' + fmtKpiValue(it, it.target) +
               (it.unit ? ' ' + it.unit : '') + (it.pct!==null ? ' (' + it.pct.toFixed(1) + '%)' : ''))
-          : ['- Chưa có dữ liệu KPI chi tiết (Trang tính2) cho nhân viên này.']),
+          : ['- Chưa có dữ liệu KPI chi tiết (tab Tháng) cho nhân viên này.']),
         '',
         '3) Đơn hàng & sản phẩm',
         '- Số đơn hàng kỳ này: ' + fmtNum(e.ordCount) + ' (kỳ trước: ' + fmtNum(e.ordCountPrev) + ')',
@@ -5882,6 +5904,7 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   }
 
   function renderAiCoachPage(){
+    syncKpiRows();
     const sel = document.getElementById('aiScopeEmployee');
     if(sel){
       const cur = sel.value;
