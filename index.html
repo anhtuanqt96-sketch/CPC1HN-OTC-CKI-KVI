@@ -460,6 +460,7 @@
       <div class="navitem" data-page="khachhang"><span class="ic">🧑‍🤝‍🧑</span><span class="hide-on-collapse">Khách hàng</span></div>
       <div class="navitem" data-page="cungtuyen"><span class="ic">🗺️</span><span class="hide-on-collapse">Cung tuyến</span></div>
       <div class="navitem" data-page="sanpham"><span class="ic">📦</span><span class="hide-on-collapse">Sản phẩm</span></div>
+      <div class="navitem" data-page="sptt"><span class="ic">🎯</span><span class="hide-on-collapse">Sản phẩm trọng tâm</span></div>
     </nav>
 
     <div class="nav-group-label hide-on-collapse">KHÁC</div>
@@ -493,6 +494,7 @@
               <button data-period="day">Ngày</button>
               <button data-period="week">Tuần</button>
               <button data-period="month" class="active">Tháng</button>
+              <button data-period="quarter">Quý</button>
             </div>
           </div>
           <div class="field" id="periodRangeField" style="display:none;">
@@ -997,6 +999,29 @@
         </div>
       </div>
 
+      <!-- ===== Trang Sản phẩm trọng tâm ===== -->
+      <div id="page-sptt" class="page-view" style="display:none;">
+        <div class="page-h1">Sản phẩm <span class="accent">trọng tâm</span></div>
+        <div class="page-sub" id="spttSub"></div>
+        <div class="panel">
+          <h3 class="section-title"><span>🎯 Tổng team theo từng sản phẩm KPI</span><span class="badge" id="spttBadge"></span></h3>
+          <div class="legend-note">Các sản phẩm lấy đúng như trang KPI (sản phẩm quốc gia, sản phẩm trọng tâm, phủ điểm bán). Số liệu tính theo <b>kỳ đang chọn</b> (ngày/tuần/tháng). <b>Điểm bán</b> = số khách hàng khác nhau đã mua sản phẩm trong kỳ; <b>Sản lượng</b> = tổng số lượng bán ra. Chỉ tiêu là chỉ tiêu THÁNG lấy từ Google Sheet KPI, nên cột % đạt chỉ tính khi xem theo Tháng hoặc Quý (Quý = cộng chỉ tiêu 3 tháng). Hai cột tăng trưởng so với kỳ liền trước có cùng độ dài.</div>
+          <div class="tablewrap">
+            <table id="spttTable">
+              <thead>
+                <tr>
+                  <th class="left">Sản phẩm</th>
+                  <th>Điểm bán<br>thực đạt</th><th>Chỉ tiêu</th><th>% đạt</th>
+                  <th>Sản lượng<br>thực đạt</th><th>Chỉ tiêu</th><th>% đạt</th>
+                  <th>Tăng trưởng<br>điểm bán</th><th>Tăng trưởng<br>sản lượng</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== Trang Tài liệu ===== -->
       <div id="page-tailieu" class="page-view" style="display:none;">
         <div class="page-h1">Tài liệu <span class="accent">tham khảo</span></div>
@@ -1332,7 +1357,6 @@
     try{ return JSON.parse(localStorage.getItem(TARGET_KEY) || '{}'); }catch(e){ return {}; }
   }
   function saveTargets(obj){ localStorage.setItem(TARGET_KEY, JSON.stringify(obj)); }
-  // Chỉ tiêu doanh số từng người theo tháng — nạp từ Google Sheet chỉ tiêu/KPI (các tab "Tháng N") trong loadKpiSheet.
   function getTarget(name, mKey){ const t = loadTargets(); return (t[mKey] && t[mKey][name]) || 0; }
   function setTarget(name, mKey, value){
     const t = loadTargets();
@@ -1353,7 +1377,7 @@
       'Dương Trung Hiếu': 20000000,
       'Mai Anh Tuấn': 70000000
     };
-    // (đã tắt) Chỉ tiêu nay lấy từ Google Sheet chỉ tiêu + TEAM_TARGETS, không còn gán số cứng theo từng người.
+    // (đã tắt) Chỉ tiêu nay lấy từ Google Sheet chỉ tiêu/KPI (các tab "Tháng N"), không còn gán số cứng theo từng người.
   }
 
   // ---------- sidebar collapse (cosmetic) ----------
@@ -1364,7 +1388,7 @@
   });
 
   // ---------- điều hướng trang (sidebar) ----------
-  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
+  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', sptt:'Sản phẩm trọng tâm', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
   let currentPage = 'tongquan';
   document.querySelectorAll('.navitem[data-page]').forEach(item => {
     item.addEventListener('click', function(){
@@ -1380,6 +1404,7 @@
         if(page==='khachhang') renderKhachHangPage();
         if(page==='cungtuyen') renderCungTuyenPage();
         if(page==='sanpham') renderSanPhamPage();
+        if(page==='sptt') renderSpttPage();
         if(page==='baocao') renderBaoCaoPage();
         if(page==='aicoach') renderAiCoachPage();
       }
@@ -2002,6 +2027,11 @@
       const e = new Date(range.end); e.setDate(e.getDate()-7);
       return {start:s, end:e};
     }
+    if(period === 'quarter'){
+      const qm = Math.floor(selectedDate.getMonth()/3)*3 - 3;
+      const a = new Date(selectedDate.getFullYear(), qm, 1);
+      return {start:startOfMonth(a), end:endOfMonth(new Date(selectedDate.getFullYear(), qm+2, 1))};
+    }
     const prevMonthAnchor = new Date(selectedDate.getFullYear(), selectedDate.getMonth()-1, 1);
     return {start:startOfMonth(prevMonthAnchor), end:endOfMonth(prevMonthAnchor)};
   }
@@ -2132,6 +2162,7 @@
     if(currentPage === 'khachhang') renderKhachHangPage();
     if(currentPage === 'cungtuyen') renderCungTuyenPage();
     if(currentPage === 'sanpham') renderSanPhamPage();
+    if(currentPage === 'sptt') renderSpttPage();
     if(currentPage === 'baocao') renderBaoCaoPage();
   }
 
@@ -2216,12 +2247,26 @@
       const e = endOfWeek(s);
       return {start:s, end:e, label: fmtDate(s) + ' – ' + fmtDate(e)};
     }
+    if(period === 'quarter'){
+      const qm = Math.floor(selectedDate.getMonth()/3)*3;
+      const s = new Date(selectedDate.getFullYear(), qm, 1, 0,0,0,0);
+      const e = endOfMonth(new Date(selectedDate.getFullYear(), qm+2, 1));
+      return {start:s, end:e, label: 'Quý ' + (qm/3+1) + '/' + s.getFullYear()};
+    }
     const s = startOfMonth(selectedDate);
     const e = endOfMonth(selectedDate);
     return {start:s, end:e, label: 'Tháng ' + (s.getMonth()+1) + '/' + s.getFullYear()};
   }
 
-  function periodNoun(){ return period==='day'?'ngày':period==='week'?'tuần':'tháng'; }
+  function periodNoun(){ return period==='day'?'ngày':period==='week'?'tuần':period==='quarter'?'quý':'tháng'; }
+  // Các tháng (dạng 'YYYY-MM') mà chỉ tiêu của kỳ đang chọn bao gồm: Quý = 3 tháng của quý, còn lại = tháng đang chọn.
+  function targetMonthKeys(){
+    if(period !== 'quarter') return [monthKey(selectedDate)];
+    const qm = Math.floor(selectedDate.getMonth()/3)*3, y = selectedDate.getFullYear();
+    return [0,1,2].map(i => y + '-' + pad(qm+i+1));
+  }
+  // Chỉ tiêu doanh số của 1 người theo kỳ đang chọn (Quý = cộng chỉ tiêu 3 tháng trong quý).
+  function targetForPeriod(name){ return targetMonthKeys().reduce((sum,k) => sum + getTarget(name, k), 0); }
 
   function deltaHtml(cur, prev){
     if(!prev){ return '<span class="kpi-sub muted">Không có dữ liệu kỳ trước</span>'; }
@@ -2459,11 +2504,11 @@
     const empRows = allEmployeeNames.map(name => {
       const oPeriod = ordersInPeriod.filter(o=>o.name===name);
       const revP = oPeriod.reduce((s,o)=>s+o.rev,0);
-      const revM = ordersInMonth.filter(o=>o.name===name).reduce((s,o)=>s+o.rev,0);
+      const revM = (period === 'quarter' ? ordersInPeriod : ordersInMonth).filter(o=>o.name===name).reduce((s,o)=>s+o.rev,0);
       const ordP = new Set(oPeriod.map(o=>o.orderId)).size;
       const visitP = callsInPeriod.filter(c=>c.name===name).length;
       const visitPPrev = callsInPrevPeriod.filter(c=>c.name===name).length;
-      const target = getTarget(name, mKey);
+      const target = targetForPeriod(name);
       const pct = target ? (revM/target*100) : null;
       const meta = employeeMeta(name);
       const khVisited = new Set(callsInPeriod.filter(c=>c.name===name).map(c=>c.khCode)).size;
@@ -2471,7 +2516,7 @@
       const khQuota = khTargetQuota(range.start, range.end, 1);
       // Doanh số Kế toán luỹ kế tháng SAU KHI áp Bảng hệ số sản phẩm — dùng thay cho "revM" ở cột "Lũy kế
       // tháng" của bảng "Hiệu suất theo nhân viên" (không ảnh hưởng "pct"/% hoàn thành, vẫn tính theo revM gốc).
-      const revMHeSo = heSoDataAvailable() ? keToanRevHeSoInRange(mStart, mEnd, name) : null;
+      const revMHeSo = heSoDataAvailable() ? keToanRevHeSoInRange(period === 'quarter' ? range.start : mStart, period === 'quarter' ? range.end : mEnd, name) : null;
       return {name, revP, revM, revMHeSo, ordP, visitP, visitPPrev, target, pct, meta, khVisited, khVisitedPrev, khQuota};
     }).sort((a,b)=> b.revP - a.revP);
 
@@ -2499,7 +2544,7 @@
     // người dùng đang chọn, thay vì luôn cố định hiển thị số liệu cả tháng.
     const daysInMonthTotal = periodDayCount(mStart, mEnd);
     const daysInPeriodSel = periodDayCount(range.start, range.end);
-    const prorateFactor = period === 'month' ? 1 : Math.min(1, daysInPeriodSel / daysInMonthTotal);
+    const prorateFactor = (period === 'month' || period === 'quarter') ? 1 : Math.min(1, daysInPeriodSel / daysInMonthTotal);
     const proratedTotalTarget = totalTargetSum * prorateFactor;
     const revenuePct = proratedTotalTarget ? (revPeriod/proratedTotalTarget*100) : null;
     // Doanh số tính song song theo Đơn Sổ tay (không cộng gộp với Đơn Kế Toán ở trên — xem để so sánh).
@@ -2860,10 +2905,10 @@
     const rows = allEmployeeNames.map(name => {
       const oPeriod = ordersInPeriod.filter(o=>o.name===name);
       const revP = oPeriod.reduce((s,o)=>s+o.rev,0);
-      const revM = ordersInMonth.filter(o=>o.name===name).reduce((s,o)=>s+o.rev,0);
+      const revM = (period === 'quarter' ? ordersInPeriod : ordersInMonth).filter(o=>o.name===name).reduce((s,o)=>s+o.rev,0);
       const ordP = new Set(oPeriod.map(o=>o.orderId)).size;
       const visitP = callsInPeriod.filter(c=>c.name===name).length;
-      const target = getTarget(name, mKey);
+      const target = targetForPeriod(name);
       const pct = target ? (revM/target*100) : null;
       const meta = employeeMeta(name);
       const khVisited = new Set(callsInPeriod.filter(c=>c.name===name).map(c=>c.khCode)).size;
@@ -3219,9 +3264,6 @@
       const parts = [];
       parts.push(count > 0 ? ('Chỉ tiêu doanh số: ' + count + ' người') : 'Chỉ tiêu doanh số: không thấy dữ liệu (Trang tính1)');
       parts.push(kpiDetailRows.length > 0 ? ('KPI chi tiết: ' + kpiDetailRows.length + ' dòng (tab Tháng)') : 'KPI chi tiết: không thấy dữ liệu (tab Tháng)');
-      if(kpi2Shift !== 0){
-        parts.push('⚠️ phát hiện Trang tính2 bị thêm/xoá 1 cột — đã tự bù trừ (lệch ' + kpi2Shift + ')');
-      }
       if(count > 0 || kpiDetailRows.length > 0){
         setKpiStatus('Đã tải lúc ' + now.toLocaleTimeString('vi-VN') + ' — ' + parts.join(' · '), 'ok');
       }else{
@@ -5995,6 +6037,79 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   // Android Chrome cần 1 "Web App Manifest" — vì Apps Script chỉ phục vụ được đúng 1 file HTML nên không
   // host riêng được file manifest.json, ta tự tạo "manifest ảo" bằng Blob ngay trong trình duyệt. Icon lấy
   // lại đúng logo CPC1HN đã có sẵn trong trang (không cần nhúng thêm ảnh base64 lần nữa).
+
+  // ================= TRANG SẢN PHẨM TRỌNG TÂM =================
+  // Tổng hợp theo TỪNG SẢN PHẨM trong bảng KPI (cùng danh sách sản phẩm như trang KPI), cho cả team:
+  //  - Điểm bán: số khách hàng KHÁC NHAU (mã KH) đã mua sản phẩm trong tháng (đếm riêng, không cộng dồn theo từng người
+  //    để 1 khách mua ở nhiều TDV vẫn chỉ tính 1 điểm bán).
+  //  - Sản lượng: tổng số lượng bán ra.
+  // Chỉ tiêu team: ưu tiên dòng SS (đã là tổng cả team); nếu không có thì cộng chỉ tiêu các dòng còn lại.
+  function renderSpttPage(){
+    syncKpiRows();
+    const mKey = monthKey(selectedDate);
+    const range = getPeriodRange();
+    const prevRange = getPreviousRange(range);
+    const ordersCur = orders.filter(o => inRange(o.date, range.start, range.end));
+    const ordersPrev = orders.filter(o => inRange(o.date, prevRange.start, prevRange.end));
+    const isSS = r => (r.viTri||'').trim().toUpperCase() === 'SS';
+    document.getElementById('spttSub').textContent = 'Kỳ ' + range.label + ' (so với ' + prevRange.label + ') · nguồn: Đơn Kế Toán + chỉ tiêu tháng ' + mKey + ' từ Sheet KPI' +
+      ((currentUser && !currentUser.isManager) ? ' · số liệu của riêng bạn' : ' · tổng cả team');
+    const tbody = document.querySelector('#spttTable tbody');
+    const prods = {}, order = [];
+    // Chỉ tiêu theo kỳ: mỗi tháng trong kỳ (Quý = 3 tháng) lấy chỉ tiêu team của tháng đó (dòng SS, nếu không có thì cộng
+    // các dòng còn lại) rồi cộng dồn lại.
+    const monthKeysSP = period === 'quarter' ? targetMonthKeys() : [mKey];
+    monthKeysSP.forEach(mk => {
+      const rowsM = scopeToCurrentUser((period === 'quarter' ? kpiRowsByMonth[mk] : kpiDetailRows) || [], r => r.name);
+      const tm = {};
+      rowsM.forEach(r => r.items.forEach(it => {
+        if(!it.product || (it.unit !== 'điểm bán' && it.unit !== 'sản lượng')) return;
+        const key = normalizeProdText(it.product);
+        if(!prods[key]){ prods[key] = { product: it.product, section: it.section, targets: {} }; order.push(key); }
+        const k2 = key + '|' + it.unit;
+        if(!tm[k2]) tm[k2] = { key, unit: it.unit, ss: null, sum: 0 };
+        if(isSS(r)) tm[k2].ss = (tm[k2].ss||0) + it.target; else tm[k2].sum += it.target;
+      }));
+      Object.values(tm).forEach(x => {
+        const t = prods[x.key].targets;
+        if(!t[x.unit]) t[x.unit] = { ss: 0, sum: 0 };
+        t[x.unit].ss += (x.ss !== null ? x.ss : x.sum);
+      });
+    });
+    if(!order.length){
+      tbody.innerHTML = '<tr><td colspan="9" class="left" style="color:var(--muted);">Chưa có sản phẩm KPI cho tháng này (kiểm tra tab "Tháng ' + (selectedDate.getMonth()+1) + '" trong Sheet KPI).</td></tr>';
+      document.getElementById('spttBadge').textContent = '';
+      return;
+    }
+    const monthView = period === 'month' || period === 'quarter';
+    const pctCell = (a, t) => {
+      if(!t || !monthView) return '<td>—</td>';
+      const p = a / t * 100;
+      const cls = p >= 100 ? 'ok' : (p >= 50 ? 'warn' : 'urgent');
+      return '<td><span class="pill ' + cls + '">' + p.toFixed(1) + '%</span></td>';
+    };
+    const growthCell = (cur, prev) => {
+      if(!prev) return '<td>' + (cur > 0 ? '<span class="pill info">Mới</span>' : '—') + '</td>';
+      const g = (cur - prev) / prev * 100;
+      const cls = g >= 0 ? 'ok' : 'urgent';
+      return '<td><span class="pill ' + cls + '">' + (g >= 0 ? '+' : '') + g.toFixed(1) + '%</span></td>';
+    };
+    const stat = (list, p) => {
+      const mine = list.filter(o => productMatch(p.product, o.prodName));
+      return { db: new Set(mine.map(o => o.khCode).filter(Boolean)).size, sl: mine.reduce((s,o) => s + (o.qty||0), 0) };
+    };
+    tbody.innerHTML = order.map(key => {
+      const p = prods[key];
+      const cur = stat(ordersCur, p), prev = stat(ordersPrev, p);
+      const tgt = u => { const t = p.targets[u]; return t ? (t.ss !== null ? t.ss : t.sum) : 0; };
+      const tDB = tgt('điểm bán'), tSL = tgt('sản lượng');
+      return '<tr><td class="left name-cell">' + escSvg(p.product) + '</td>' +
+        '<td>' + fmtNum(cur.db) + '</td><td>' + (tDB ? fmtNum(tDB) : '—') + '</td>' + pctCell(cur.db, tDB) +
+        '<td>' + fmtNum(cur.sl) + '</td><td>' + (tSL ? fmtNum(tSL) : '—') + '</td>' + pctCell(cur.sl, tSL) +
+        growthCell(cur.db, prev.db) + growthCell(cur.sl, prev.sl) + '</tr>';
+    }).join('');
+    document.getElementById('spttBadge').textContent = order.length + ' sản phẩm';
+  }
 
   // ================= TRANG TÀI LIỆU =================
   // Đọc tab "Tài liệu" trong Google Sheet nguồn. Cột: A=Tên tài liệu, B=Link, C=Nhóm (tuỳ chọn), D=Ghi chú (tuỳ chọn).
