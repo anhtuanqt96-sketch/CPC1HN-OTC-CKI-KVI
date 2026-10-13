@@ -376,6 +376,7 @@
   }
   .pill{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; }
   .pill.ok{ background:rgba(37,99,235,.18); color:#60a5fa; }
+  .pill.great{ background:rgba(34,197,94,.18); color:#4ade80; }
   .pill.warn{ background:rgba(245,158,11,.18); color:#fbbf24; }
   .pill.urgent{ background:rgba(239,68,68,.18); color:#f87171; }
   .pill.na{ background:#1c2540; color:#7b869e; }
@@ -3079,6 +3080,12 @@
     if(!kpiName || !orderProdName) return false;
     const fullA = normalizeProdText(kpiName), fullB = normalizeProdText(orderProdName);
     if(!fullA || !fullB) return false;
+    // Quy cách "N vỉ x M ống/viên" khác nhau (VD KPI "4 vỉ x 5 ống" vs đơn "1 vỉ x 10 ống") = 2 sản phẩm khác nhau, không tính chung.
+    const viA = fullA.match(/(\d+)\s*vi\s*x\s*(\d+)/), viB = fullB.match(/(\d+)\s*vi\s*x\s*(\d+)/);
+    if(viA && viB && (viA[1] !== viB[1] || viA[2] !== viB[2])) return false;
+    // Quà tặng/vật phẩm (hộp thuỷ tinh, đồng hồ treo tường... mang nhãn sản phẩm) KHÔNG phải sản phẩm thuốc/TPCN —
+    // không được tính vào sản lượng/điểm bán KPI (trước đây bị khớp nhầm theo tên gốc, làm sản lượng Progermila lẻ).
+    if(/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullB) && !/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullA)) return false;
     if(fullA===fullB || fullA.includes(fullB) || fullB.includes(fullA)) return true;
     const baseA = normalizeProdText(baseProductName(kpiName));
     const baseB = normalizeProdText(baseProductName(orderProdName));
@@ -3651,9 +3658,9 @@
     wrap.innerHTML = entries.map((e, idx) => {
       const quickText = e.avgPct===null ? '—' : e.avgPct.toFixed(1)+'% TB';
       const itemsHtml = e.items.map(it => {
-        const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
+        const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'great' : it.pct>=80 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
         const barWidth = it.pct===null ? 0 : Math.min(100, it.pct);
-        const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? 'var(--green)' : it.pct>=50 ? 'var(--amber)' : 'var(--red)');
+        const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
         return `
           <tr>
             <td class="left">${escSvg(it.section)}</td>
@@ -3676,7 +3683,7 @@
               <div class="kpi-emp-name">${escSvg(e.name)}${e.viTri ? ' <span style="color:var(--muted);font-weight:500;">— '+escSvg(e.viTri)+'</span>' : ''}</div>
               <div class="kpi-emp-meta">${[e.maNV && ('Mã NV: '+e.maNV), e.khuVuc].filter(Boolean).map(escSvg).join(' · ') || '—'} · ${e.items.length} hạng mục</div>
             </div>
-            <div class="kpi-emp-quick">${quickText}</div>
+            <div class="kpi-emp-quick" style="color:${e.avgPct===null ? 'var(--muted)' : e.avgPct>=100 ? '#4ade80' : e.avgPct>=80 ? '#60a5fa' : e.avgPct>=50 ? '#fbbf24' : '#f87171'};">${quickText}</div>
           </summary>
           <div class="tablewrap">
             <table class="kpi-item-table">
@@ -5394,9 +5401,9 @@
                   </tr>
                 </thead>
                 <tbody>${e.kpiItems.map(it => {
-                  const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
+                  const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'great' : it.pct>=80 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
                   const barWidth = it.pct===null ? 0 : Math.min(100, it.pct);
-                  const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? 'var(--green)' : it.pct>=50 ? 'var(--amber)' : 'var(--red)');
+                  const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
                   return `
                   <tr>
                     <td class="left">${escSvg(it.section)}</td>
@@ -6085,7 +6092,7 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     const pctCell = (a, t) => {
       if(!t || !monthView) return '<td>—</td>';
       const p = a / t * 100;
-      const cls = p >= 100 ? 'ok' : (p >= 50 ? 'warn' : 'urgent');
+      const cls = p >= 100 ? 'great' : (p >= 80 ? 'ok' : (p >= 50 ? 'warn' : 'urgent'));
       return '<td><span class="pill ' + cls + '">' + p.toFixed(1) + '%</span></td>';
     };
     const growthCell = (cur, prev) => {
