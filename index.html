@@ -1006,7 +1006,7 @@
         <div class="page-sub" id="spttSub"></div>
         <div class="panel">
           <h3 class="section-title"><span>🎯 Tổng team theo từng sản phẩm KPI</span><span class="badge" id="spttBadge"></span></h3>
-          <div class="legend-note">Các sản phẩm lấy đúng như trang KPI (sản phẩm quốc gia, sản phẩm trọng tâm, phủ điểm bán). Số liệu tính theo <b>kỳ đang chọn</b> (ngày/tuần/tháng). <b>Điểm bán</b> = số khách hàng khác nhau đã mua sản phẩm trong kỳ; <b>Sản lượng</b> = tổng số lượng bán ra. Chỉ tiêu là chỉ tiêu THÁNG lấy từ Google Sheet KPI, nên cột % đạt chỉ tính khi xem theo Tháng hoặc Quý (Quý = cộng chỉ tiêu 3 tháng). Hai cột tăng trưởng so với kỳ liền trước có cùng độ dài.</div>
+          <div class="legend-note">Các sản phẩm lấy đúng như trang KPI (sản phẩm quốc gia, sản phẩm trọng tâm, phủ điểm bán). Số liệu tính theo <b>kỳ đang chọn</b> (ngày/tuần/tháng/quý). <b>Điểm bán</b> = số khách hàng khác nhau đã mua sản phẩm trong kỳ; <b>Sản lượng</b> = tổng số lượng bán ra. Chỉ tiêu là chỉ tiêu THÁNG lấy từ Google Sheet KPI, nên cột % đạt chỉ tính khi xem theo Tháng hoặc Quý (Quý = cộng chỉ tiêu 3 tháng). Hai cột tăng trưởng so với kỳ liền trước có cùng độ dài.</div>
           <div class="tablewrap">
             <table id="spttTable">
               <thead>
@@ -1426,6 +1426,7 @@
     if(currentPage === 'kpi') renderKpiPage();
     if(currentPage === 'baocao') renderBaoCaoPage();
     if(currentPage === 'tailieu') renderTaiLieuPage();
+    if(currentPage === 'sptt') renderSpttPage();
   });
 
   // ---------- chuông thông báo (nhân viên khẩn cấp KPI < 50% chỉ tiêu tháng) ----------
@@ -6046,11 +6047,10 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   // lại đúng logo CPC1HN đã có sẵn trong trang (không cần nhúng thêm ảnh base64 lần nữa).
 
   // ================= TRANG SẢN PHẨM TRỌNG TÂM =================
-  // Tổng hợp theo TỪNG SẢN PHẨM trong bảng KPI (cùng danh sách sản phẩm như trang KPI), cho cả team:
-  //  - Điểm bán: số khách hàng KHÁC NHAU (mã KH) đã mua sản phẩm trong tháng (đếm riêng, không cộng dồn theo từng người
-  //    để 1 khách mua ở nhiều TDV vẫn chỉ tính 1 điểm bán).
-  //  - Sản lượng: tổng số lượng bán ra.
-  // Chỉ tiêu team: ưu tiên dòng SS (đã là tổng cả team); nếu không có thì cộng chỉ tiêu các dòng còn lại.
+  // Tổng hợp theo TỪNG SẢN PHẨM trong bảng KPI (cùng danh sách sản phẩm như trang KPI), cho cả team, theo kỳ đang chọn:
+  //  - Điểm bán: số khách hàng KHÁC NHAU (mã KH) đã mua sản phẩm trong kỳ (đếm riêng, không cộng dồn theo từng người).
+  //  - Sản lượng: tổng số lượng bán ra. Kèm tăng trưởng so với kỳ liền trước.
+  // Chỉ tiêu team theo từng tháng: ưu tiên dòng SS (đã là tổng cả team); nếu không có thì cộng các dòng còn lại. Quý = cộng 3 tháng.
   function renderSpttPage(){
     syncKpiRows();
     const mKey = monthKey(selectedDate);
@@ -6059,12 +6059,10 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     const ordersCur = orders.filter(o => inRange(o.date, range.start, range.end));
     const ordersPrev = orders.filter(o => inRange(o.date, prevRange.start, prevRange.end));
     const isSS = r => (r.viTri||'').trim().toUpperCase() === 'SS';
-    document.getElementById('spttSub').textContent = 'Kỳ ' + range.label + ' (so với ' + prevRange.label + ') · nguồn: Đơn Kế Toán + chỉ tiêu tháng ' + mKey + ' từ Sheet KPI' +
+    document.getElementById('spttSub').textContent = 'Kỳ ' + range.label + ' (so với ' + prevRange.label + ') · nguồn: Đơn Kế Toán + chỉ tiêu từ Sheet KPI' +
       ((currentUser && !currentUser.isManager) ? ' · số liệu của riêng bạn' : ' · tổng cả team');
     const tbody = document.querySelector('#spttTable tbody');
     const prods = {}, order = [];
-    // Chỉ tiêu theo kỳ: mỗi tháng trong kỳ (Quý = 3 tháng) lấy chỉ tiêu team của tháng đó (dòng SS, nếu không có thì cộng
-    // các dòng còn lại) rồi cộng dồn lại.
     const monthKeysSP = period === 'quarter' ? targetMonthKeys() : [mKey];
     monthKeysSP.forEach(mk => {
       const rowsM = scopeToCurrentUser((period === 'quarter' ? kpiRowsByMonth[mk] : kpiDetailRows) || [], r => r.name);
