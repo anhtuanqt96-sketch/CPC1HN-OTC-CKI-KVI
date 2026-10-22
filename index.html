@@ -1752,7 +1752,7 @@
   // nên cần cảnh báo để người dùng bổ sung ngày trong Google Sheet thay vì âm thầm mất doanh số.
   function collectMissingDateIssues(rows){
     const map = {};
-    const nameIdx = detectOrderLayout(rows) === 'old' ? 21 : 20; // xem ghi chú tự dò cấu trúc cột tại mapOrderRowsGSheet
+    const nameIdx = ORDER_LAYOUTS[detectOrderLayout(rows)].name; // xem ghi chú tự dò cấu trúc cột tại mapOrderRowsGSheet
     for(const r of rows){
       const name = (r[nameIdx]||'').toString().trim();
       if(!name) continue;
@@ -1791,22 +1791,26 @@
     const s = (v||'').toString().trim();
     if(s.length < 3) return false;
     if(/^[\d.,%\s-]+$/.test(s)) return false; // toàn số/ký hiệu -> không phải tên người
+    if(/\b(OTC|CNDN|KVI?\d?|CK\d)\b/i.test(s)) return false; // tên nhóm/khu vực (VD "CNDN - OTC - KV1 - CK3") -> không phải tên người
     return s.indexOf(' ') > -1; // tên người luôn có ít nhất 1 dấu cách (họ + tên)
   }
   function detectOrderLayout(rows){
+    // Có thêm kiểu "lot" (từ 19/10/2026 kế toán chèn thêm cột "Mã lô" ngay trước "Tên nhân viên": Mã NV ở cột 20, Mã lô 21,
+    // Tên NV 22). Dò xem ô nào trong 3 vị trí ứng viên (20/21/22) có dạng TÊN NGƯỜI.
     for(const r of (rows||[])){
-      const newNameCell = r[20], oldNameCell = r[21];
-      const newIsName = isPersonNameCell(newNameCell);
-      const oldIsName = isPersonNameCell(oldNameCell);
-      if(newIsName && !oldIsName) return 'new';
-      if(oldIsName && !newIsName) return 'old';
-      if(newIsName && oldIsName) continue; // cả 2 đều giống tên (hiếm) — thử dòng khác cho chắc
+      const c20 = isPersonNameCell(r[20]), c21 = isPersonNameCell(r[21]), c22 = isPersonNameCell(r[22]);
+      const n = (c20?1:0) + (c21?1:0) + (c22?1:0);
+      if(n !== 1) continue; // không rõ ràng (0 hoặc nhiều ô giống tên) — thử dòng khác
+      if(c22) return 'lot';
+      if(c21) return 'old';
+      return 'new';
     }
-    return 'new'; // mặc định theo định dạng kế toán đang gửi hiện tại (25/9/2026) nếu không dò được rõ ràng
+    return 'lot'; // mặc định theo định dạng kế toán đang gửi hiện tại (19/10/2026)
   }
   const ORDER_LAYOUTS = {
     old: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:21 },
-    new: { orderId:3, khCode:0, khName:1, prodCode:4, prodName:5, qty:7, dim:14, empCode:19, name:20 }
+    new: { orderId:3, khCode:0, khName:1, prodCode:4, prodName:5, qty:7, dim:14, empCode:19, name:20 },
+    lot: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:22 }
   };
   function mapOrderRowsGSheet(rows){
     const L = ORDER_LAYOUTS[detectOrderLayout(rows)];
@@ -2317,6 +2321,20 @@
   // phản hồi người dùng) — mọi chỉ số "khách hàng đã ghé thăm" trong dashboard đều so với định mức này
   // và so với cùng kỳ trước, thay vì so với danh sách khách hàng kế hoạch trong Cung tuyến.
   const ROUTE_DAILY_QUOTA_PER_REP = 15;
+  // So sánh "cùng kỳ": khi kỳ đang xem (tuần/tháng/quý) CHƯA hết (dữ liệu mới có đến giữa kỳ), kỳ trước cũng chỉ lấy
+  // cùng số ngày đầu kỳ (VD tháng 10 mới có 18 ngày thì so với 18 ngày đầu tháng 9) thay vì cả kỳ trước — tránh chênh lệch giả.
+  function sameLengthPrevRange(range, prevRange){
+    let last = null;
+    orders.forEach(o => { if(!last || o.date > last) last = o.date; });
+    calls.forEach(c => { if(!last || c.date > last) last = c.date; });
+    if(period === 'day' || !last || last >= range.end) return prevRange;
+    const lastDay = new Date(last.getFullYear(), last.getMonth(), last.getDate());
+    const days = Math.max(1, Math.floor((lastDay - range.start) / 86400000) + 1);
+    const e = new Date(prevRange.start.getFullYear(), prevRange.start.getMonth(), prevRange.start.getDate() + days - 1, 23,59,59,999);
+    if(e >= prevRange.end) return prevRange;
+    return { start: prevRange.start, end: e, label: fmtDate(prevRange.start) + ' – ' + fmtDate(e) + ' (cùng ' + days + ' ngày đầu kỳ)' };
+  }
+
   function periodDayCount(start, end){
     return Math.max(1, Math.floor((end - start) / 86400000) + 1);
   }
@@ -2467,7 +2485,7 @@
       document.getElementById('dateInput').value = ymd(selectedDate);
     }
     const range = getPeriodRange();
-    const prevRange = getPreviousRange(range);
+    const prevRange = sameLengthPrevRange(range, getPreviousRange(range));
     document.getElementById('periodRangeField').style.display = 'flex';
     document.getElementById('periodRangeText').textContent = range.label;
 
@@ -2892,7 +2910,7 @@
   function renderNhanVienPage(){
     syncKpiRows();
     const range = getPeriodRange();
-    const prevRange = getPreviousRange(range);
+    const prevRange = sameLengthPrevRange(range, getPreviousRange(range));
     const mStart = startOfMonth(selectedDate), mEnd = endOfMonth(selectedDate), mKey = monthKey(selectedDate);
     const ordersInPeriod = orders.filter(o => inRange(o.date, range.start, range.end));
     const ordersInMonth = orders.filter(o => inRange(o.date, mStart, mEnd));
@@ -5808,7 +5826,7 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
 
   async function buildAiCoachDataset(scope){
     const range = getPeriodRange();
-    const prevRange = getPreviousRange(range);
+    const prevRange = sameLengthPrevRange(range, getPreviousRange(range));
     const mStart = startOfMonth(selectedDate);
     const mEnd = endOfMonth(selectedDate);
     const mKey = monthKey(selectedDate);
@@ -5844,7 +5862,11 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     const teamRevPeriod = employees.reduce((s,e)=>s+e.doanhSo.kyNay,0);
     const teamRevPrev = employees.reduce((s,e)=>s+e.doanhSo.kyTruoc,0);
     const teamTarget = employees.reduce((s,e)=>s+(e.doanhSo.chiTieuThang||0),0);
-    const teamRevMonth = employees.reduce((s,e)=>s+e.doanhSo.thang,0);
+    // SỬA: tổng doanh số THÁNG của team = tổng thẳng các dòng Đơn Kế Toán trong tháng (đúng bằng số ở trang Tổng quan khi xem theo Tháng).
+    // Trước đây cộng "thang" của từng người, nhưng với SS "thang" đã là tổng cả team nên bị cộng trùng (ra 268 tr thay vì ~147 tr).
+    const teamRevMonth = scope.type === 'employee'
+      ? employees.reduce((s,e)=>s+e.doanhSo.thang,0)
+      : orders.filter(o => inRange(o.date, mStart, mEnd)).reduce((s,o)=>s+o.rev,0);
 
     return {
       boiCanh: {
@@ -6055,7 +6077,7 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
     syncKpiRows();
     const mKey = monthKey(selectedDate);
     const range = getPeriodRange();
-    const prevRange = getPreviousRange(range);
+    const prevRange = sameLengthPrevRange(range, getPreviousRange(range));
     const ordersCur = orders.filter(o => inRange(o.date, range.start, range.end));
     const ordersPrev = orders.filter(o => inRange(o.date, prevRange.start, prevRange.end));
     const isSS = r => (r.viTri||'').trim().toUpperCase() === 'SS';
