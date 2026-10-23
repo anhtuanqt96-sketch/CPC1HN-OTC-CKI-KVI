@@ -1667,10 +1667,18 @@
     const endRow = n + 1 + 20; // dư thêm phòng khi có dòng mới vừa thêm chưa nằm trong "rows"
     try{
       const tail = await fetchTabJSONP(sheetId, tabName, 'A' + startRow + ':Z' + endRow);
-      for(let i = 0; i < tail.length; i++){
-        const idx = (startRow + i) - 2; // rows[idx] ứng với dòng sheet (startRow+i)
-        if(idx < n) rows[idx] = tail[i];
-        else rows.push(tail[i]); // dòng mới hơn cả lần fetch nguyên tab
+      // SỬA (23/10/2026): số dòng khi tải nguyên tab KHÔNG trùng số dòng thật của Sheet (gviz bỏ bớt dòng trống/ẩn),
+      // nên ghi đè theo CHỈ SỐ dòng là sai: dải tail bị ghi đè vào nhầm dòng làm MẤT dòng đơn thật (vd Tigin gel
+      // 25g 10 tuýp ngày 01/10 của NV Tú) và chèn trùng dòng. Nay ghép theo KHOÁ dòng (Mã chứng từ + Mã SP + SL +
+      // Thành tiền + Tên NV): dòng đã có -> thay bằng bản mới (vá ngày null do cache), chưa có -> thêm mới.
+      const keyOf = r => [r[1], r[7], r[9], r[12], r[22]].map(x => (x==null?'':x).toString().replace(/\s+/g,'')).join('|');
+      const idxByKey = {};
+      rows.forEach((r, i) => { if(r && r[1]){ const k = keyOf(r); (idxByKey[k] = idxByKey[k] || []).push(i); } });
+      for(const t of tail){
+        if(!t || !t[1]) continue; // dòng trống
+        const lst = idxByKey[keyOf(t)];
+        if(lst && lst.length) rows[lst.shift()] = t;
+        else rows.push(t);
       }
     }catch(e){ /* giữ nguyên rows nếu lỗi — không chặn tải dữ liệu chính */ }
     return rows;
@@ -3105,6 +3113,8 @@
     // Quà tặng/vật phẩm (hộp thuỷ tinh, đồng hồ treo tường... mang nhãn sản phẩm) KHÔNG phải sản phẩm thuốc/TPCN —
     // không được tính vào sản lượng/điểm bán KPI (trước đây bị khớp nhầm theo tên gốc, làm sản lượng Progermila lẻ).
     if(/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullB) && !/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullA)) return false;
+    // Nebusal: KPI ghi "coleus" thì chỉ tính sản phẩm có chữ coleus (loại 1.3%); Nebusal spray 1.9%/2.3% là sản phẩm khác.
+    if(/\bcoleus\b/.test(fullA) && /nebusal/.test(fullB) && !/\bcoleus\b/.test(fullB)) return false;
     if(fullA===fullB || fullA.includes(fullB) || fullB.includes(fullA)) return true;
     const baseA = normalizeProdText(baseProductName(kpiName));
     const baseB = normalizeProdText(baseProductName(orderProdName));
