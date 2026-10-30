@@ -1368,7 +1368,6 @@
   function getTarget(name, mKey){
     const t = loadTargets(); const m = t[mKey]; if(!m) return 0;
     if(m[name]) return m[name];
-    // Tên trong đơn/check-in có thể viết khác hoa-thường so với Sheet KPI (vd "ĐỖ HOÀNG VŨ") -> so khớp theo tên đã chuẩn hoá.
     const k = normalizeName(name);
     for(const key in m){ if(normalizeName(key) === k && m[key]) return m[key]; }
     return 0;
@@ -1680,7 +1679,7 @@
     const startRow = Math.max(2, (n + 1) - TAIL + 1); // dòng 1 là header, dữ liệu bắt đầu dòng 2
     const endRow = n + 1 + 20; // dư thêm phòng khi có dòng mới vừa thêm chưa nằm trong "rows"
     try{
-      const tail = await fetchTabJSONP(sheetId, tabName, 'A' + startRow + ':Z' + endRow);
+      const tail = await fetchTabJSONP(sheetId, tabName, 'A' + startRow + ':AZ' + endRow);
       // SỬA (23/10/2026): số dòng tải nguyên tab KHÔNG trùng số dòng thật của Sheet nên ghi đè theo CHỈ SỐ là sai
       // (mất dòng đơn thật, vd Tigin 25g 10 tuýp ngày 01/10 của NV Tú). Nay ghép theo KHOÁ dòng.
       const keyOf = r => [r[1], r[7], r[9], r[12], r[22]].map(x => (x==null?'':x).toString().replace(/\s+/g,'')).join('|');
@@ -1717,7 +1716,7 @@
     for(let start = 2; start <= totalRows + 1; start += CHUNK){
       const end = Math.min(start + CHUNK - 1, totalRows + 1);
       try{
-        const chunk = await fetchTabJSONP(sheetId, tabName, 'A' + start + ':Z' + end);
+        const chunk = await fetchTabJSONP(sheetId, tabName, 'A' + start + ':AZ' + end);
         out.push(...chunk);
       }catch(e){ /* bỏ qua đoạn lỗi, giữ các đoạn đã tải được — không để 1 đoạn lỗi chặn toàn bộ */ }
     }
@@ -1772,7 +1771,7 @@
   // nên cần cảnh báo để người dùng bổ sung ngày trong Google Sheet thay vì âm thầm mất doanh số.
   function collectMissingDateIssues(rows){
     const map = {};
-    const nameIdx = ORDER_LAYOUTS[detectOrderLayout(rows)].name; // xem ghi chú tự dò cấu trúc cột tại mapOrderRowsGSheet
+    const nameIdx = resolveOrderLayout(rows).name; // xem ghi chú tự dò cấu trúc cột tại mapOrderRowsGSheet
     for(const r of rows){
       const name = (r[nameIdx]||'').toString().trim();
       if(!name) continue;
@@ -1814,8 +1813,33 @@
     if(/\b(OTC|CNDN|KVI?\d?|CK\d)\b/i.test(s)) return false;
     return s.indexOf(' ') > -1; // tên người luôn có ít nhất 1 dấu cách (họ + tên)
   }
+  // Tự dò vị trí cột theo NỘI DUNG (kế toán hay chèn/bớt cột nên không thể hardcode): cột "Nhóm" (dạng CNDN - OTC - KVI - CK1)
+  // luôn là cột cuối có chữ OTC/CNDN/KV/CK, và "Tên nhân viên" đứng ngay trước nó; "Mã nhân viên" là cột 6 chữ số đầu tiên
+  // từ cột 19 trở đi. Nếu không dò được thì quay về cách dò cũ theo mẫu cột đã biết.
+  function resolveOrderLayout(rows){
+    const base = { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6 };
+    const votes = {};
+    for(const r of (rows||[]).slice(0, 400)){
+      if(!r) continue;
+      let g = -1;
+      for(let i = r.length - 1; i >= 21; i--){
+        const v = (r[i]||'').toString();
+        if(v && /(CNDN|OTC|KVI?\d?|CK\d)/i.test(v) && !/\d{4}/.test(v)){ g = i; break; }
+      }
+      if(g < 22 || !isPersonNameCell(r[g-1])) continue;
+      let e = -1;
+      for(let i = 19; i < g - 1; i++){ if(/^\d{6}$/.test((r[i]||'').toString().trim())){ e = i; break; } }
+      const key = (g-1) + '|' + e;
+      votes[key] = (votes[key]||0) + 1;
+    }
+    const best = Object.entries(votes).sort((x,y)=>y[1]-x[1])[0];
+    if(best){
+      const [nm, em] = best[0].split('|').map(Number);
+      return Object.assign({}, base, { name: nm, empCode: em >= 0 ? em : nm - 2 });
+    }
+    return ORDER_LAYOUTS[detectOrderLayout(rows)];
+  }
   function detectOrderLayout(rows){
-    // Kiểu "lot2" (từ 29/10/2026: kế toán thêm cột "Tên bộ 3", "TP bộ 3", "HSD"; 27 cột): Mã NV ở cột 22, Tên NV ở cột 25, cột 26 = Nhóm.
     for(const r of (rows||[]).slice(0, 200)){
       if(r && r.length >= 27 && isPersonNameCell(r[25]) && /OTC|CNDN|KV|CK\d/i.test((r[26]||'').toString())) return 'lot2';
     }
@@ -1829,7 +1853,7 @@
       if(c21) return 'old';
       return 'new';
     }
-    return 'lot2'; // mặc định theo định dạng kế toán đang gửi hiện tại (29/10/2026)
+    return 'lot2'; // mặc định theo định dạng kế toán hiện tại (29/10/2026)
   }
   const ORDER_LAYOUTS = {
     old: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:21 },
@@ -1838,7 +1862,7 @@
     lot2: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:22, name:25 }
   };
   function mapOrderRowsGSheet(rows){
-    const L = ORDER_LAYOUTS[detectOrderLayout(rows)];
+    const L = resolveOrderLayout(rows);
     return rows.map(r => {
       const qty = parseVNNum(r[L.qty]);
       const rev = parseVNNum(r[12]); // "Doanh số trước Vat sau hệ số" — doanh số đã áp Hệ số, giống nhau ở cả 2 kiểu cột
@@ -3539,7 +3563,7 @@
       document.getElementById('loginPassError').textContent = 'Tài khoản này chưa có mã nhân viên trong dữ liệu — liên hệ ASM.';
       return;
     }
-    const _canon = v => /^\d+$/.test(v) ? v.replace(/^0+/, '') : v.toUpperCase(); // Sheet có thể làm mất số 0 đầu (020578 -> 20578)
+    const _canon = v => /^\d+$/.test(v) ? v.replace(/^0+/, '') : v.toUpperCase();
     if(_canon(entered) !== _canon(real)){
       document.getElementById('loginPassError').textContent = 'Sai mã nhân viên. Vui lòng thử lại.';
       document.getElementById('loginPassInput').value = '';
