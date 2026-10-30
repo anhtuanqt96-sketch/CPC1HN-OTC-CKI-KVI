@@ -663,7 +663,7 @@
                   <th>Doanh thu</th>
                   <th>Đơn</th>
                   <th>Lượt thăm</th>
-                  <th>KH ghé thăm / Định mức</th>
+                  <th>Lượt ghé thăm</th>
                   <th>Doanh số sau hệ số</th>
                   <th>Chỉ tiêu tháng</th>
                   <th>% hoàn thành</th>
@@ -1252,7 +1252,14 @@
   const EXCLUDED_NAMES = ['nguyễn hồng sơn', 'đinh nguyễn bình nguyên', 'nguyễn văn nghĩa'];
   // Chỉ tính 6 người của team OTC-CKI-KVI (Sheet nguồn chung chứa cả nhân sự các nhóm khác — lọc bỏ hết, kể cả
   // người mới thêm vào Sheet). Muốn thêm/bớt người trong team: sửa danh sách TEAM_NAMES (viết thường, đủ dấu).
-  const TEAM_NAMES = ['mai anh tuấn', 'dương trung hiếu', 'hồ thị tố uyên', 'lý nhật trinh', 'nguyễn đức tú', 'trần minh tân'];
+  const TEAM_NAMES = ['mai anh tuấn', 'dương trung hiếu', 'đỗ hoàng vũ', 'hồ thị tố uyên', 'lý nhật trinh', 'nguyễn đức tú', 'trần minh tân'];
+  // Dương Trung Hiếu đã nghỉ/chuyển: ĐƠN HÀNG của Hiếu vẫn giữ trong dữ liệu để cộng vào doanh số tổng team, nhưng Hiếu
+  // không còn hiện như một nhân viên (danh sách, đăng nhập, KPI). Đỗ Hoàng Vũ (mã NV 020578) thay vị trí của Hiếu.
+  const HIDDEN_PEOPLE = ['dương trung hiếu'];
+  const REPLACEMENT_PEOPLE = ['Đỗ Hoàng Vũ'];
+  const PERSON_REPLACE_FROM = 'dương trung hiếu', PERSON_REPLACE_TO = 'Đỗ Hoàng Vũ', PERSON_REPLACE_CODE = '020578';
+  function isHiddenPerson(n){ return HIDDEN_PEOPLE.includes((n||'').toString().normalize('NFC').trim().toLowerCase().replace(/\s+/g,' ')); }
+  function withReplacementPeople(list){ return dedupeNames([...(list||[]).filter(n => !isHiddenPerson(n)), ...REPLACEMENT_PEOPLE]); }
   function isExcludedName(name){
     const n = (name||'').toString().normalize('NFC').trim().toLowerCase().replace(/\s+/g,' ');
     if(!n) return false;
@@ -1358,7 +1365,14 @@
     try{ return JSON.parse(localStorage.getItem(TARGET_KEY) || '{}'); }catch(e){ return {}; }
   }
   function saveTargets(obj){ localStorage.setItem(TARGET_KEY, JSON.stringify(obj)); }
-  function getTarget(name, mKey){ const t = loadTargets(); return (t[mKey] && t[mKey][name]) || 0; }
+  function getTarget(name, mKey){
+    const t = loadTargets(); const m = t[mKey]; if(!m) return 0;
+    if(m[name]) return m[name];
+    // Tên trong đơn/check-in có thể viết khác hoa-thường so với Sheet KPI (vd "ĐỖ HOÀNG VŨ") -> so khớp theo tên đã chuẩn hoá.
+    const k = normalizeName(name);
+    for(const key in m){ if(normalizeName(key) === k && m[key]) return m[key]; }
+    return 0;
+  }
   function setTarget(name, mKey, value){
     const t = loadTargets();
     if(!t[mKey]) t[mKey] = {};
@@ -1552,7 +1566,7 @@
     orders = newOrders.filter(o => !isExcludedName(o.name));
     calls = newCalls.filter(c => !isExcludedName(c.name));
     routes = []; // Excel export chuẩn không có dữ liệu Cung tuyến
-    allEmployeeNames = dedupeNames([...nvNames, ...orders.map(o=>o.name), ...calls.map(c=>c.name)]).filter(n => !isExcludedName(n));
+    allEmployeeNames = withReplacementPeople(dedupeNames([...nvNames, ...orders.map(o=>o.name), ...calls.map(c=>c.name)]).filter(n => !isExcludedName(n)));
     applyUserScopeIfNeeded();
     dataSource = 'excel';
     dimLabel = 'kênh bán';
@@ -1667,15 +1681,13 @@
     const endRow = n + 1 + 20; // dư thêm phòng khi có dòng mới vừa thêm chưa nằm trong "rows"
     try{
       const tail = await fetchTabJSONP(sheetId, tabName, 'A' + startRow + ':Z' + endRow);
-      // SỬA (23/10/2026): số dòng khi tải nguyên tab KHÔNG trùng số dòng thật của Sheet (gviz bỏ bớt dòng trống/ẩn),
-      // nên ghi đè theo CHỈ SỐ dòng là sai: dải tail bị ghi đè vào nhầm dòng làm MẤT dòng đơn thật (vd Tigin gel
-      // 25g 10 tuýp ngày 01/10 của NV Tú) và chèn trùng dòng. Nay ghép theo KHOÁ dòng (Mã chứng từ + Mã SP + SL +
-      // Thành tiền + Tên NV): dòng đã có -> thay bằng bản mới (vá ngày null do cache), chưa có -> thêm mới.
+      // SỬA (23/10/2026): số dòng tải nguyên tab KHÔNG trùng số dòng thật của Sheet nên ghi đè theo CHỈ SỐ là sai
+      // (mất dòng đơn thật, vd Tigin 25g 10 tuýp ngày 01/10 của NV Tú). Nay ghép theo KHOÁ dòng.
       const keyOf = r => [r[1], r[7], r[9], r[12], r[22]].map(x => (x==null?'':x).toString().replace(/\s+/g,'')).join('|');
       const idxByKey = {};
       rows.forEach((r, i) => { if(r && r[1]){ const k = keyOf(r); (idxByKey[k] = idxByKey[k] || []).push(i); } });
       for(const t of tail){
-        if(!t || !t[1]) continue; // dòng trống
+        if(!t || !t[1]) continue;
         const lst = idxByKey[keyOf(t)];
         if(lst && lst.length) rows[lst.shift()] = t;
         else rows.push(t);
@@ -1799,10 +1811,14 @@
     const s = (v||'').toString().trim();
     if(s.length < 3) return false;
     if(/^[\d.,%\s-]+$/.test(s)) return false; // toàn số/ký hiệu -> không phải tên người
-    if(/\b(OTC|CNDN|KVI?\d?|CK\d)\b/i.test(s)) return false; // tên nhóm/khu vực (VD "CNDN - OTC - KV1 - CK3") -> không phải tên người
+    if(/\b(OTC|CNDN|KVI?\d?|CK\d)\b/i.test(s)) return false;
     return s.indexOf(' ') > -1; // tên người luôn có ít nhất 1 dấu cách (họ + tên)
   }
   function detectOrderLayout(rows){
+    // Kiểu "lot2" (từ 29/10/2026: kế toán thêm cột "Tên bộ 3", "TP bộ 3", "HSD"; 27 cột): Mã NV ở cột 22, Tên NV ở cột 25, cột 26 = Nhóm.
+    for(const r of (rows||[]).slice(0, 200)){
+      if(r && r.length >= 27 && isPersonNameCell(r[25]) && /OTC|CNDN|KV|CK\d/i.test((r[26]||'').toString())) return 'lot2';
+    }
     // Có thêm kiểu "lot" (từ 19/10/2026 kế toán chèn thêm cột "Mã lô" ngay trước "Tên nhân viên": Mã NV ở cột 20, Mã lô 21,
     // Tên NV 22). Dò xem ô nào trong 3 vị trí ứng viên (20/21/22) có dạng TÊN NGƯỜI.
     for(const r of (rows||[])){
@@ -1813,12 +1829,13 @@
       if(c21) return 'old';
       return 'new';
     }
-    return 'lot'; // mặc định theo định dạng kế toán đang gửi hiện tại (19/10/2026)
+    return 'lot2'; // mặc định theo định dạng kế toán đang gửi hiện tại (29/10/2026)
   }
   const ORDER_LAYOUTS = {
     old: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:21 },
     new: { orderId:3, khCode:0, khName:1, prodCode:4, prodName:5, qty:7, dim:14, empCode:19, name:20 },
-    lot: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:22 }
+    lot: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:20, name:22 },
+    lot2: { orderId:1, khCode:3, khName:4, prodCode:7, prodName:8, qty:9, dim:6, empCode:22, name:25 }
   };
   function mapOrderRowsGSheet(rows){
     const L = ORDER_LAYOUTS[detectOrderLayout(rows)];
@@ -2092,7 +2109,7 @@
       calls = newCalls.filter(c => !isExcludedName(c.name));
       routes = newRoutes.filter(r => !isExcludedName(r.name));
       soTayOrders = newSoTayOrders.filter(o => !isExcludedName(o.name));
-      allEmployeeNames = dedupeNames([...orders.map(o=>o.name), ...calls.map(c=>c.name), ...routes.map(r=>r.name), ...soTayOrders.map(o=>o.name)]).filter(n => !isExcludedName(n));
+      allEmployeeNames = withReplacementPeople(dedupeNames([...orders.map(o=>o.name), ...calls.map(c=>c.name), ...routes.map(r=>r.name), ...soTayOrders.map(o=>o.name)]).filter(n => !isExcludedName(n)));
       applyUserScopeIfNeeded();
       dataSource = 'gsheet';
       dimLabel = 'khu vực';
@@ -2447,7 +2464,23 @@
     });
     const topCode = Object.entries(codeCount).sort((a,b)=>b[1]-a[1])[0];
     const topDim = Object.entries(dimCount).sort((a,b)=>b[1]-a[1])[0];
-    return { code: topCode ? topCode[0] : '', region: topDim ? topDim[0] : '' };
+    let code = topCode ? topCode[0] : '', region = topDim ? topDim[0] : '';
+    // Mã NV + địa bàn CHÍNH THỨC lấy từ Google Sheet KPI (tab Tháng) — chỉ dùng dữ liệu đơn hàng khi Sheet chưa có người này.
+    const kr = kpiInfoRow(name);
+    if(kr){
+      if(kr.maNV){ const m = kr.maNV.toString().trim(); code = /^\d+$/.test(m) ? m.padStart(6,'0') : m; }
+      if(kr.khuVuc) region = kr.khuVuc;
+    }
+    return { code, region };
+  }
+  // Dòng KPI của 1 người trong Sheet (ưu tiên dòng có khu vực, vì quản lý SS có thể có 2 dòng).
+  function kpiInfoRow(name){
+    const all = (typeof kpiDetailRows !== 'undefined' ? kpiDetailRows : []).filter(r => normalizeName(r.name)===normalizeName(name));
+    return all.find(r => r.khuVuc) || all[0] || null;
+  }
+  function displayPersonName(name){
+    const kr = kpiInfoRow(name);
+    return (kr && kr.name) ? kr.name : name;
   }
 
   // Khu vực/địa bàn CHÍNH THỨC của một nhân viên: ưu tiên lấy đúng cột "Khu vực" đã khai báo ở
@@ -2745,7 +2778,7 @@
         : {cls:'urgent', text:'Khẩn cấp'};
       const barColor = r.pct===null ? '#39415c' : (r.pct>=100?'var(--green)':r.pct>=50?'var(--amber)':'var(--red)');
       const barWidth = r.pct===null ? 0 : Math.min(100, r.pct);
-      const khText = calls.length ? (r.visitP + '/' + r.khQuota) : '—';
+      const khText = calls.length ? String(r.visitP) : '—';
       const khTitle = 'Tổng lượt ghé thăm (tính cả trùng) · Định mức 15 lượt/ngày · Kỳ trước: ' + r.visitPPrev;
       return `
         <tr>
@@ -2754,7 +2787,7 @@
             <div class="emp-cell">
               <div class="rank-avatar">${initials(r.name)}</div>
               <div class="emp-meta-text">
-                <div class="name-cell">${escSvg(r.name)}</div>
+                <div class="name-cell">${escSvg(displayPersonName(r.name))}</div>
                 <div class="emp-code">${[r.meta.code, r.meta.region].filter(Boolean).join(' · ') || '—'}</div>
               </div>
             </div>
@@ -2966,13 +2999,13 @@
     grid.innerHTML = rows.map(r => {
       const pillClass = r.pct===null ? 'na' : (r.pct>=100?'ok':r.pct>=50?'warn':'urgent');
       const pillText = r.pct===null ? 'Chưa có chỉ tiêu' : r.pct.toFixed(1)+'%';
-      const compText = !calls.length ? 'Không có dữ liệu' : (r.khVisited + '/' + r.khQuota + ' (kỳ trước: ' + r.khVisitedPrev + ')');
+      const compText = !calls.length ? 'Không có dữ liệu' : (r.khVisited + ' (kỳ trước: ' + r.khVisitedPrev + ')');
       return `
         <div class="prod-card" style="text-align:left;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
             <div class="rank-avatar" style="width:38px;height:38px;font-size:14px;margin-right:0;">${initials(r.name)}</div>
             <div>
-              <div style="font-weight:700;color:#fff;font-size:13.5px;">${escSvg(r.name)}</div>
+              <div style="font-weight:700;color:#fff;font-size:13.5px;">${escSvg(displayPersonName(r.name))}</div>
               <div class="emp-code">${[r.meta.code, r.meta.region].filter(Boolean).join(' · ') || '—'}</div>
               ${r.hireDate ? `<div class="emp-code" style="margin-top:2px;">Nhận việc: ${fmtDate(r.hireDate)} · Thâm niên: ${r.tenureMonths} tháng</div>` : ''}
             </div>
@@ -2981,7 +3014,7 @@
             <div>Doanh số kỳ (Kế toán)<br><b style="color:#fff;font-size:13px;">${fmtMoney(r.revP)}</b></div>
             <div>Đơn hàng<br><b style="color:#fff;font-size:13px;">${fmtNum(r.ordP)}</b></div>
             <div>Lượt thăm<br><b style="color:#fff;font-size:13px;">${fmtNum(r.visitP)}</b></div>
-            <div>KH ghé/Định mức<br><b style="color:#fff;font-size:13px;">${compText}</b></div>
+            <div>KH ghé thăm<br><b style="color:#fff;font-size:13px;">${compText}</b></div>
           </div>
           ${r.revPSoTay!==null ? `<div style="margin-top:8px;font-size:11px;color:var(--muted);">📝 Doanh số kỳ (Sổ tay): <b style="color:#fff;">${fmtMoney(r.revPSoTay)}</b></div>` : ''}
           ${r.revPHeSo!==null ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><div style="font-size:11px;color:var(--muted);">Doanh số sau hệ số</div><div style="font-size:16px;font-weight:800;color:#fff;">${fmtMoney(r.revPHeSo)}</div></div>` : ''}
@@ -3113,7 +3146,7 @@
     // Quà tặng/vật phẩm (hộp thuỷ tinh, đồng hồ treo tường... mang nhãn sản phẩm) KHÔNG phải sản phẩm thuốc/TPCN —
     // không được tính vào sản lượng/điểm bán KPI (trước đây bị khớp nhầm theo tên gốc, làm sản lượng Progermila lẻ).
     if(/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullB) && !/thuy tinh|glass box|dong ho|tui vai|moc khoa/.test(fullA)) return false;
-    // Nebusal: KPI ghi "coleus" thì chỉ tính sản phẩm có chữ coleus (loại 1.3%); Nebusal spray 1.9%/2.3% là sản phẩm khác.
+    // Nebusal: KPI ghi "coleus" thì chỉ tính sản phẩm có chữ coleus (loại 1.3%); spray 1.9%/2.3% là sản phẩm khác.
     if(/\bcoleus\b/.test(fullA) && /nebusal/.test(fullB) && !/\bcoleus\b/.test(fullB)) return false;
     if(fullA===fullB || fullA.includes(fullB) || fullB.includes(fullA)) return true;
     const baseA = normalizeProdText(baseProductName(kpiName));
@@ -3205,7 +3238,7 @@
       const v = cols[idx];
       return (v===null || v===undefined) ? '' : v.toString().trim();
     };
-    const name = get(2);
+    let name = get(2);
     if(!name || /^[\d.,%\s-]+$/.test(name)) return null;
     const items = [];
     const pushIf = (section, product, targetRaw, unit, manual) => {
@@ -3506,7 +3539,8 @@
       document.getElementById('loginPassError').textContent = 'Tài khoản này chưa có mã nhân viên trong dữ liệu — liên hệ ASM.';
       return;
     }
-    if(entered.toUpperCase() !== real.toUpperCase()){
+    const _canon = v => /^\d+$/.test(v) ? v.replace(/^0+/, '') : v.toUpperCase(); // Sheet có thể làm mất số 0 đầu (020578 -> 20578)
+    if(_canon(entered) !== _canon(real)){
       document.getElementById('loginPassError').textContent = 'Sai mã nhân viên. Vui lòng thử lại.';
       document.getElementById('loginPassInput').value = '';
       document.getElementById('loginPassInput').focus();
@@ -3558,7 +3592,7 @@
       // SS có đơn đứng tên mình thì bị bỏ sót khỏi tổng của chính SS). Nay gộp cả tên SS vào danh sách lọc.
       const teamNames = kpiRows
         .filter(r => !myRow.khuVuc || r.khuVuc === myRow.khuVuc)
-        .map(r => r.name);
+        .map(r => r.name).concat(HIDDEN_PEOPLE);
       return ordersInMonth.filter(o => teamNames.some(n => normalizeName(n)===normalizeName(o.name)));
     }
     // SỬA: trước đây so khớp CHÍNH XÁC (o.name === name), trong khi nhánh SS ở trên lại dùng
