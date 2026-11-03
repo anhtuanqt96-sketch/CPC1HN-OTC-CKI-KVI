@@ -8,7 +8,7 @@
      Store). Icon (icon-192.png / icon-512.png) và Web App Manifest (manifest.json) là CÁC FILE THẬT, phải
      upload cùng thư mục với file index.html này lên GitHub Pages thì icon mới hiện đúng — nhiều trình
      duyệt không chấp nhận icon/manifest nhúng dạng "data:" URI khi "Thêm vào màn hình chính". -->
-<meta name="theme-color" content="#0a0f1c">
+<meta name="theme-color" content="#f3f6fb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -404,6 +404,99 @@
   .emp-code{ font-size:11px; color:var(--muted); }
 
   footer{ text-align:center; color:var(--muted); font-size:12px; padding:24px; }
+
+  /* ===== GIAO DIỆN SÁNG (23/11/2026) — ghi đè bảng màu tối ở trên ===== */
+  :root{
+    --bg:#f3f6fb; --panel:#ffffff; --panel2:#f7f9fd; --ink:#1f2a44; --muted:#667391;
+    --border:#e0e6f1; --blue:#2563eb; --green:#2563eb; --red:#dc2626; --amber:#d97706;
+  }
+  body{ background:var(--bg); color:var(--ink); }
+  .sidebar{ background:#ffffff; border-right:1px solid var(--border); }
+  .brand-title{ color:var(--ink); }
+  .sidebar-search input{ background:#f3f6fb; color:var(--ink); }
+  .sidebar-search input::placeholder, .login-search input::placeholder{ color:#97a2bb; }
+  .nav-group-label{ color:#8a96b0; }
+  .navitem{ color:#465272; }
+  .navitem:hover{ background:#eef3fc; }
+  .navitem.active{ background:linear-gradient(135deg,#2563eb,#3b82f6); color:#ffffff; }
+  .navitem.active:hover{ background:linear-gradient(135deg,#2563eb,#3b82f6); }
+  .navitem.disabled{ color:#a3adc3; }
+  .soon-badge{ background:#eef1f7; color:#8a96b0; }
+  .topbar{ background:rgba(255,255,255,.92); backdrop-filter:blur(6px); }
+  .topbar-title, .user-name, .page-h1, .panel-title, h3.section-title, .kpi-value, .compare-current,
+  .name-cell, .kpi-emp-name, .prod-name, .prod-rev, .prod-row-name, .prod-row-rev, .attn-name, .login-title,
+  .login-pass-name, .login-tile-name, .bell-dropdown-head, .bell-item-name, .empty h2, .ai-report-h, .attn-body b,
+  .dq-banner b{ color:var(--ink); }
+  .month-select select, .field input[type=date], .field input[type=file], .field input[type=text],
+  .field input[type=password], .field select, input.target-input, .login-search input, .login-pass-form input{
+    background:#ffffff; color:var(--ink); border-color:#cfd7e6;
+  }
+  .field input[type=date]::-webkit-calendar-picker-indicator{ filter:none; }
+  .bell{ color:#667391; }
+  .bell-dropdown, .toast, .login-box{ box-shadow:0 12px 28px rgba(31,42,68,.14); }
+  .bell-item:hover, tbody tr:hover{ background:#f1f6ff; }
+  .toast{ color:var(--ink); }
+  #loginOverlay{ background:radial-gradient(circle at 30% 20%, #e3edff 0%, var(--bg) 60%); }
+  .login-tile, .login-back, .btn-secondary, .source-tabs button, .tabs button, h3.section-title .badge{ background:#f3f6fb; color:var(--ink); border-color:var(--border); }
+  .login-tile:hover{ background:#eaf1ff; border-color:#2563eb; }
+  .source-tabs button, .tabs button{ color:#667391; }
+  .source-tabs button.active{ background:#2563eb; color:#fff; border-color:#2563eb; }
+  .tabs button.active{ background:#2563eb; color:#fff; border-color:#2563eb; }
+  .btn-upload{ background:#2563eb; color:#fff; }
+  .btn-upload:hover{ background:#1d4fd0; }
+  .btn-upload:disabled{ background:#b9c6e4; color:#fff; }
+  details.settings summary{ color:var(--ink); }
+  .panel, .kpi-card{ box-shadow:0 1px 3px rgba(31,42,68,.06); }
+  .dq-banner{ background:#fff7e6; border-color:#f4cf8f; color:#8a5a00; }
+  .kpi-icon.blue, .kpi-icon.green{ background:#e6efff; color:#2563eb; }
+  .kpi-icon.amber{ background:#fff1d6; color:#b45309; }
+  .kpi-icon.purple{ background:#efe8ff; color:#6d28d9; }
+  .kpi-sub.warn, .compare-delta.warn{ color:#dc2626; }
+  .kpi-sub.ok, .compare-delta.ok, .kpi-emp-quick, .prod-share, .prod-row-share, .prod-rank{ color:#2563eb; }
+  .gauge-hole{ color:var(--ink); }
+  .tag-pill, .prod-top-pill{ background:#e6efff; color:#2563eb; }
+  .attn-body{ color:#465272; }
+  .attn-status.urgent{ background:#fdeceb; color:#c0281d; }
+  .attn-status.warn{ background:#fff1d6; color:#a35a00; }
+  .pill.ok{ background:#e3edff; color:#1d4fd0; }
+  .pill.great{ background:#e0f5e8; color:#15803d; }
+  .pill.warn{ background:#fff1d6; color:#a35a00; }
+  .pill.urgent{ background:#fdeceb; color:#c0281d; }
+  .pill.na{ background:#eef1f7; color:#7a86a1; }
+  .pill.info{ background:#efe8ff; color:#6d28d9; }
+  .bar-bg, .prod-row-bar-bg{ background:#e8edf6; }
+  .ai-report-h{ color:var(--ink); }
+  .legend-note, .hint{ color:var(--muted); }
+  .user-chip-logout-hint{ color:var(--muted); }
+  ::-webkit-scrollbar-thumb{ background:#cfd7e6; }
+
+/* ===== fix14: colorful tone ===== */
+.panel-title, h3.section-title, .page-h1{ color:#2f4ec4 !important; }
+.panel:nth-of-type(3n+1) h3.section-title{ color:#2f4ec4 !important; }
+.panel:nth-of-type(3n+2) h3.section-title{ color:#0f9d8a !important; }
+.panel:nth-of-type(3n) h3.section-title{ color:#8a3fd1 !important; }
+.panel{ border-top:3px solid #c7d4f7; }
+.panel:nth-of-type(3n+2){ border-top-color:#a8e6dc; }
+.panel:nth-of-type(3n){ border-top-color:#dcc6f5; }
+table th{ background:linear-gradient(180deg,#eaf0ff,#dfe8ff) !important; color:#2f4ec4 !important; font-weight:700; }
+table tbody tr:nth-child(even) td{ background:#f7f9ff; }
+table tbody tr:hover td{ background:#fff6e0 !important; }
+td.name-cell, .name-cell, .kpi-emp-name{ color:#1d4ed8 !important; font-weight:700; }
+td.left b{ color:#0b6e99; }
+.kpi-grid .kpi-card:nth-child(4n+1), .kpi-row .kpi-card:nth-child(4n+1){ border-left:4px solid #3b82f6; background:linear-gradient(135deg,#fff,#eef4ff); }
+.kpi-grid .kpi-card:nth-child(4n+2), .kpi-row .kpi-card:nth-child(4n+2){ border-left:4px solid #14b8a6; background:linear-gradient(135deg,#fff,#e9fbf7); }
+.kpi-grid .kpi-card:nth-child(4n+3), .kpi-row .kpi-card:nth-child(4n+3){ border-left:4px solid #a855f7; background:linear-gradient(135deg,#fff,#f6eeff); }
+.kpi-grid .kpi-card:nth-child(4n), .kpi-row .kpi-card:nth-child(4n){ border-left:4px solid #f59e0b; background:linear-gradient(135deg,#fff,#fff6e3); }
+.kpi-grid .kpi-card:nth-child(4n+1) .kpi-value{ color:#2563eb !important; }
+.kpi-grid .kpi-card:nth-child(4n+2) .kpi-value{ color:#0d9488 !important; }
+.kpi-grid .kpi-card:nth-child(4n+3) .kpi-value{ color:#9333ea !important; }
+.kpi-grid .kpi-card:nth-child(4n) .kpi-value{ color:#d97706 !important; }
+.prod-row-rev{ color:#0d9488 !important; font-weight:700; }
+.prod-rank{ color:#f59e0b !important; font-weight:800; }
+.kpi-emp-summary{ background:linear-gradient(90deg,#eef4ff,#fff) !important; border-left:4px solid #3b82f6; }
+details.kpi-emp-details:nth-of-type(3n+2) .kpi-emp-summary{ background:linear-gradient(90deg,#e9fbf7,#fff) !important; border-left-color:#14b8a6; }
+details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-gradient(90deg,#f6eeff,#fff) !important; border-left-color:#a855f7; }
+.tone-chip{ display:inline-block; padding:1px 9px; border-radius:999px; font-weight:600; border:1px solid transparent; }
 </style>
 </head>
 <body>
@@ -458,8 +551,11 @@
       <div class="navitem" data-page="nhanvien"><span class="ic">👤</span><span class="hide-on-collapse">Nhân viên</span></div>
       <div class="navitem" data-page="kpi"><span class="ic">📶</span><span class="hide-on-collapse">KPI</span></div>
       <div class="navitem" data-page="donhang"><span class="ic">🛒</span><span class="hide-on-collapse">Đơn hàng</span></div>
-      <div class="navitem" data-page="khachhang"><span class="ic">🧑‍🤝‍🧑</span><span class="hide-on-collapse">Khách hàng</span></div>
+      <div class="navitem" data-page="khachhang"><span class="ic">🧑‍🤝‍🧑</span><span class="hide-on-collapse">Khách hàng tiềm năng</span></div>
+      <div class="navitem" data-page="khnguyco"><span class="ic">🚨</span><span class="hide-on-collapse">Khách hàng nguy cơ</span></div>
       <div class="navitem" data-page="cungtuyen"><span class="ic">🗺️</span><span class="hide-on-collapse">Cung tuyến</span></div>
+      <div class="navitem" data-page="bccall"><span class="ic">📞</span><span class="hide-on-collapse">Tổng hợp BC Call</span></div>
+      <div class="navitem" data-page="bcanalysis"><span class="ic">🔎</span><span class="hide-on-collapse">Phân tích BC Call</span></div>
       <div class="navitem" data-page="sanpham"><span class="ic">📦</span><span class="hide-on-collapse">Sản phẩm</span></div>
       <div class="navitem" data-page="sptt"><span class="ic">🎯</span><span class="hide-on-collapse">Sản phẩm trọng tâm</span></div>
     </nav>
@@ -500,7 +596,7 @@
           </div>
           <div class="field" id="periodRangeField" style="display:none;">
             <label>Khoảng thời gian</label>
-            <div style="font-size:13px;padding-top:6px;color:#fff;" id="periodRangeText"></div>
+            <div style="font-size:13px;padding-top:6px;color:var(--ink);" id="periodRangeText"></div>
           </div>
         </div>
         <div class="month-select"><select id="monthSelect"></select></div>
@@ -847,10 +943,19 @@
 
       <!-- ===== Trang Khách hàng ===== -->
       <div id="page-khachhang" class="page-view" style="display:none;">
-        <div class="page-h1">Theo dõi <span class="accent">Khách hàng</span></div>
+        <div class="page-h1">Khách hàng <span class="accent">tiềm năng</span></div>
         <div class="page-sub" id="khSub"></div>
 
         <div class="kpi-grid" id="khSummaryCards" style="grid-template-columns:repeat(4,1fr);"></div>
+
+        <div class="panel">
+          <h3 class="section-title" style="justify-content:space-between;">
+            <span>🌟 Khách hàng tiềm năng — doanh số đều và liên tục</span>
+            <span class="badge" id="khSteadyBadge"></span>
+          </h3>
+          <div class="legend-note">Khách có đơn <b>liên tiếp ≥3 tháng</b> tính đến tháng này (hoặc tháng trước), không đứt quãng. Đánh giá: <b>⭐ Rất đều</b> = ≥4 tháng liên tục và doanh số dao động thấp; <b>✅ Đều</b> = ≥3 tháng liên tục; <b>🚀 Đang tăng</b> = đều và tháng gần nhất cao hơn trung bình ≥20%; <b>⚠️ Đều nhưng giảm</b> = đều nhưng tháng gần nhất thấp hơn trung bình ≥30%.</div>
+          <div id="khSteadyWrap"></div>
+        </div>
 
         <div class="panel">
           <h3 class="section-title" style="justify-content:space-between;">
@@ -858,20 +963,23 @@
             <span class="badge" id="khDeclineBadge"></span>
           </h3>
           <div class="legend-note">
-            So sánh doanh thu 3 tháng gần nhất (Đơn Kế Toán). "Giảm" = tháng này thấp hơn tháng trước; "Giảm liên tục"
-            = giảm liên tiếp cả 3 tháng. Khách hàng ngừng phát sinh đơn tháng này (nhưng có đơn tháng trước) được đánh dấu riêng.
+            Thống kê doanh số từng khách hàng qua <b>4 tháng gần nhất</b> (Đơn Kế Toán) và <b>xếp loại</b> khách hàng.
+            <b>Xếp loại</b> theo giá trị doanh thu 4 tháng: <b>A – Trọng điểm</b> (nhóm đóng góp tới 80% doanh thu tích lũy),
+            <b>B – Tiềm năng</b> (80–95%), <b>C – Thường</b> (5% cuối). <b>Trạng thái</b>: "Giảm" = tháng này thấp hơn tháng trước,
+            "Giảm liên tục" = giảm liên tiếp 3 tháng, "Ngừng phát sinh" = có đơn tháng trước nhưng tháng này chưa có,
+            "Mất khách" = 2 tháng liền không phát sinh dù trước đó có mua. Khách hạng A đang giảm/ngừng/mất được ưu tiên đứng đầu.
           </div>
           <div id="khDeclineWrap"></div>
         </div>
 
         <div class="panel">
           <h3 class="section-title" style="justify-content:space-between;">
-            <span>🏆 Xếp hạng khách hàng (theo doanh thu 3 tháng gần nhất)</span>
+            <span>🏆 Xếp hạng & xếp loại khách hàng (theo doanh thu 4 tháng gần nhất)</span>
             <span class="badge" id="khRankBadge"></span>
           </h3>
           <div class="legend-note">
-            Phân nhóm theo phương pháp ABC: nhóm <b>A</b> = khách hàng đóng góp tới 80% doanh thu tích lũy, <b>B</b> = tới 95%,
-            <b>C</b> = phần còn lại.
+            Xếp loại theo phương pháp ABC trên doanh thu 4 tháng: <b>A – Trọng điểm</b> = khách hàng đóng góp tới 80% doanh thu tích lũy,
+            <b>B – Tiềm năng</b> = tới 95%, <b>C – Thường</b> = phần còn lại.
           </div>
           <div class="tablewrap">
             <table id="khRankTable">
@@ -880,15 +988,32 @@
                   <th>Hạng</th>
                   <th class="left">Khách hàng</th>
                   <th class="left">Nhân viên phụ trách</th>
-                  <th>Doanh thu 3 tháng</th>
+                  <th>Doanh thu 4 tháng</th>
                   <th>% tích lũy</th>
-                  <th>Nhóm</th>
+                  <th>Xếp loại</th>
                   <th>Xu hướng</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== Trang Khách hàng nguy cơ ===== -->
+      <div id="page-khnguyco" class="page-view" style="display:none;">
+        <div class="page-h1">Khách hàng <span class="accent">nguy cơ</span></div>
+        <div class="page-sub" id="khncSub"></div>
+        <div class="kpi-grid" id="khncCards" style="grid-template-columns:repeat(3,1fr);"></div>
+        <div class="panel">
+          <h3 class="section-title"><span>🟠 Cần tiếp cận — ngừng phát sinh 2 tháng</span><span class="badge" id="khncB1"></span></h3>
+          <div class="legend-note">Khách có đơn gần nhất cách đây 2 tháng (tháng này và tháng trước đều chưa có đơn). Cần ghé thăm, chào lại sản phẩm đã mua.</div>
+          <div id="khncWrap1"></div>
+        </div>
+        <div class="panel">
+          <h3 class="section-title"><span>🔴 Nguy cơ mất khách — ngừng phát sinh từ 3 tháng</span><span class="badge" id="khncB2"></span></h3>
+          <div class="legend-note">Khách đã không phát sinh đơn từ 3 tháng trở lên. Cần SS/TDV vào cuộc, tìm nguyên nhân và có chính sách kéo lại.</div>
+          <div id="khncWrap2"></div>
         </div>
       </div>
 
@@ -998,6 +1123,26 @@
             <div class="attn-empty">Đang chờ file danh mục sản phẩm — gửi file (Excel/CSV) hoặc link Google Sheet để mình hoàn thiện phần này.</div>
           </div>
         </div>
+      </div>
+
+      <!-- ===== Trang Phân tích BC Call ===== -->
+      <div id="page-bccall" class="page-view" style="display:none;">
+        <div class="page-h1">Tổng hợp <span class="accent">BC Call</span></div>
+        <div class="page-sub" id="bccallSub"></div>
+        <div id="bccallDays" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+        <div id="bccallSummary" class="cards-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;"></div>
+        <div id="bccallBody"></div>
+      </div>
+
+      <!-- ===== Trang Phân tích BC Call ===== -->
+      <div id="page-bcanalysis" class="page-view" style="display:none;">
+        <div class="page-h1">Phân tích <span class="accent">BC Call</span></div>
+        <div class="page-sub" id="bcaSub"></div>
+        <div id="bcaCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
+        <div id="bcaInsights"></div>
+        <div id="bcaTable"></div>
+        <div id="bcaHot"></div>
+        <div id="bcaEmp"></div>
       </div>
 
       <!-- ===== Trang Sản phẩm trọng tâm ===== -->
@@ -1402,7 +1547,7 @@
   });
 
   // ---------- điều hướng trang (sidebar) ----------
-  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', sptt:'Sản phẩm trọng tâm', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
+  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng tiềm năng', khnguyco:'Khách hàng nguy cơ', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', sptt:'Sản phẩm trọng tâm', bccall:'Tổng hợp BC Call', bcanalysis:'Phân tích BC Call', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
   let currentPage = 'tongquan';
   document.querySelectorAll('.navitem[data-page]').forEach(item => {
     item.addEventListener('click', function(){
@@ -1416,9 +1561,12 @@
         if(page==='kpi') renderKpiPage();
         if(page==='donhang') renderDonHangPage();
         if(page==='khachhang') renderKhachHangPage();
+        if(page==='khnguyco') renderKhNguyCoPage();
         if(page==='cungtuyen') renderCungTuyenPage();
         if(page==='sanpham') renderSanPhamPage();
         if(page==='sptt') renderSpttPage();
+        if(page==='bccall') renderBcCallPage();
+        if(page==='bcanalysis') renderBcAnalysisPage();
         if(page==='baocao') renderBaoCaoPage();
         if(page==='aicoach') renderAiCoachPage();
       }
@@ -1440,6 +1588,8 @@
     if(currentPage === 'baocao') renderBaoCaoPage();
     if(currentPage === 'tailieu') renderTaiLieuPage();
     if(currentPage === 'sptt') renderSpttPage();
+    if(currentPage === 'bccall') renderBcCallPage();
+    if(currentPage === 'bcanalysis') renderBcAnalysisPage();
   });
 
   // ---------- chuông thông báo (nhân viên khẩn cấp KPI < 50% chỉ tiêu tháng) ----------
@@ -1757,13 +1907,25 @@
 
   function monthSuffix(y, m){ return pad(m) + '/' + pad(y % 100); }
 
+  // Call HÀNH CHÍNH (không phải ghé thăm khách hàng): "Khách hàng nhà riêng (HT tạo)", "Văn phòng chi nhánh ... CPC1 Hà Nội",
+  // phòng ban làm việc... — loại khỏi mọi thống kê call.
+  function isAdminCall(khName, task, taskType){
+    const t = normalizeProdText((khName||'') + ' | ' + (taskType||'') + ' | ' + (task||''));
+    return /(khach hang nha rieng|\bht tao\b|van phong chi nhanh|van phong cpc1|phong ban lam viec|bep an|hanh chinh)/.test(t);
+  }
   function mapCallRowsGSheet(rows){
     return rows.map(r => ({
       name: (r[2]||'').toString().trim(),
       date: parseVNDate(r[9]),
       khCode: r[5],
-      khName: (r[6]||'').toString().trim() // Tên Tổ chức (khách hàng)
-    })).filter(x => x.name && x.date);
+      khName: (r[6]||'').toString().trim(), // Tên Tổ chức (khách hàng)
+      timeIn: (r[9]||'').toString().trim(),   // TG CheckIn
+      timeOut: (r[11]||'').toString().trim(), // TG CheckOut
+      task: (r[3]||'').toString().trim(),     // Tên nhiệm vụ
+      taskType: (r[4]||'').toString().trim(), // Loại nhiệm vụ
+      report: (r[14]||'').toString().trim(),  // Cột O: Báo cáo
+      status: (r[15]||'').toString().trim()   // Trạng thái call
+    })).filter(x => x.name && x.date && !isAdminCall(x.khName, x.task, x.taskType));
   }
 
   // Dò các dòng "Đơn Kế Toán" có tên nhân viên nhưng KHÔNG có "Ngày chứng từ" hợp lệ —
@@ -2218,6 +2380,8 @@
     if(currentPage === 'cungtuyen') renderCungTuyenPage();
     if(currentPage === 'sanpham') renderSanPhamPage();
     if(currentPage === 'sptt') renderSpttPage();
+    if(currentPage === 'bccall') renderBcCallPage();
+    if(currentPage === 'bcanalysis') renderBcAnalysisPage();
     if(currentPage === 'baocao') renderBaoCaoPage();
   }
 
@@ -2396,10 +2560,10 @@
   // kể cả khi thư viện biểu đồ bên ngoài bị chặn.
   function gaugeHtml(pct){
     const val = pct===null ? 0 : Math.max(0, Math.min(100, pct));
-    const color = pct===null ? '#39415c' : (pct>=100 ? '#2563eb' : pct>=50 ? '#f59e0b' : '#ef4444');
+    const color = pct===null ? '#cbd3e3' : (pct>=100 ? '#2563eb' : pct>=50 ? '#f59e0b' : '#ef4444');
     const label = pct===null ? '—' : pct.toFixed(1)+'%';
     return `<div class="kpi-gauge-wrap">
-      <div class="gauge-ring" style="background:conic-gradient(${color} calc(${val}*1%), #1c2540 0);">
+      <div class="gauge-ring" style="background:conic-gradient(${color} calc(${val}*1%), #e5eaf3 0);">
         <div class="gauge-hole">${label}</div>
       </div>
     </div>`;
@@ -2425,7 +2589,7 @@
     let grid = '', bars = '';
     for(let g=0; g<=4; g++){
       const gy = padT + innerH - (g/4)*innerH;
-      grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${padL+innerW}" y2="${gy.toFixed(1)}" stroke="#1c2540" stroke-width="1"/>`;
+      grid += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${padL+innerW}" y2="${gy.toFixed(1)}" stroke="#e5eaf3" stroke-width="1"/>`;
       grid += `<text x="${padL-6}" y="${(gy+3).toFixed(1)}" font-size="9" fill="#8891a8" text-anchor="end">${((g/4)*maxRev/1000000).toFixed(1)}tr</text>`;
     }
     labels.forEach((lab, i) => {
@@ -2442,7 +2606,7 @@
     });
     return `
       <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:calc(100% - 24px);" preserveAspectRatio="none">${grid}${bars}</svg>
-      <div style="display:flex;justify-content:center;gap:16px;font-size:11px;color:#aab3c8;height:24px;align-items:center;">
+      <div style="display:flex;justify-content:center;gap:16px;font-size:11px;color:#667391;height:24px;align-items:center;">
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#3b82f6;margin-right:5px;"></span>Doanh thu (đ)</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f59e0b;margin-right:5px;"></span>Số đơn</span>
       </div>`;
@@ -2466,10 +2630,10 @@
     });
     const legend = entries.map((e,i) => {
       const pct = total ? (e[1]/total*100) : 0;
-      return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#aab3c8;margin:2px 0;">
+      return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#667391;margin:2px 0;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[i%colors.length]};flex:none;"></span>
         <span style="flex:1;">${escSvg(e[0])}</span>
-        <span style="color:#e8ebf3;font-weight:600;">${pct.toFixed(1)}%</span>
+        <span style="color:var(--ink);font-weight:600;">${pct.toFixed(1)}%</span>
       </div>`;
     }).join('');
     return `
@@ -2668,7 +2832,7 @@
         <div class="kpi-label">Tổng doanh số team</div>
         <div class="kpi-value">${fmtCompact(revPeriod)} / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}</div>
         <div class="kpi-sub muted">🧾 Theo Kế toán · Kỳ: ${range.label}${lastDataDate ? ' · Cập nhật đến ' + fmtDate(lastDataDate) : ''}</div>
-        ${revPeriodSoTay!==null ? `<div class="kpi-sub muted" style="margin-top:2px;">📝 Theo Sổ tay: <b style="color:#fff;">${fmtCompact(revPeriodSoTay)}</b> / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}${revenuePctSoTay!==null ? ' ('+revenuePctSoTay.toFixed(1)+'%)' : ''}</div>` : ''}
+        ${revPeriodSoTay!==null ? `<div class="kpi-sub muted" style="margin-top:2px;">📝 Theo Sổ tay: <b style="color:var(--ink);">${fmtCompact(revPeriodSoTay)}</b> / ${proratedTotalTarget ? fmtCompact(proratedTotalTarget) : '—'}${revenuePctSoTay!==null ? ' ('+revenuePctSoTay.toFixed(1)+'%)' : ''}</div>` : ''}
         ${gaugeHtml(revenuePct)}
         <div class="kpi-gauge-caption">% hoàn thành chỉ tiêu doanh số theo Kế toán (quy đổi theo ${periodNoun()})</div>
       </div>
@@ -2800,7 +2964,7 @@
         : r.pct>=100 ? {cls:'ok', text:'Tốt'}
         : r.pct>=50 ? {cls:'warn', text:'Cần tăng'}
         : {cls:'urgent', text:'Khẩn cấp'};
-      const barColor = r.pct===null ? '#39415c' : (r.pct>=100?'var(--green)':r.pct>=50?'var(--amber)':'var(--red)');
+      const barColor = r.pct===null ? '#cbd3e3' : (r.pct>=100?'var(--green)':r.pct>=50?'var(--amber)':'var(--red)');
       const barWidth = r.pct===null ? 0 : Math.min(100, r.pct);
       const khText = calls.length ? String(r.visitP) : '—';
       const khTitle = 'Tổng lượt ghé thăm (tính cả trùng) · Định mức 15 lượt/ngày · Kỳ trước: ' + r.visitPPrev;
@@ -2872,7 +3036,7 @@
         else if(pct>=50) pillClass='warn';
         else pillClass='urgent';
       }
-      const barColor = pct===null ? '#39415c' : (pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)');
+      const barColor = pct===null ? '#cbd3e3' : (pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)');
       const barWidth = pct===null ? 0 : Math.min(100, pct);
 
       let compHtml = '<span class="pill na">—</span>';
@@ -3029,19 +3193,19 @@
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
             <div class="rank-avatar" style="width:38px;height:38px;font-size:14px;margin-right:0;">${initials(r.name)}</div>
             <div>
-              <div style="font-weight:700;color:#fff;font-size:13.5px;">${escSvg(displayPersonName(r.name))}</div>
+              <div style="font-weight:700;color:var(--ink);font-size:13.5px;">${escSvg(displayPersonName(r.name))}</div>
               <div class="emp-code">${[r.meta.code, r.meta.region].filter(Boolean).join(' · ') || '—'}</div>
               ${r.hireDate ? `<div class="emp-code" style="margin-top:2px;">Nhận việc: ${fmtDate(r.hireDate)} · Thâm niên: ${r.tenureMonths} tháng</div>` : ''}
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px;color:var(--muted);">
-            <div>Doanh số kỳ (Kế toán)<br><b style="color:#fff;font-size:13px;">${fmtMoney(r.revP)}</b></div>
-            <div>Đơn hàng<br><b style="color:#fff;font-size:13px;">${fmtNum(r.ordP)}</b></div>
-            <div>Lượt thăm<br><b style="color:#fff;font-size:13px;">${fmtNum(r.visitP)}</b></div>
-            <div>KH ghé thăm<br><b style="color:#fff;font-size:13px;">${compText}</b></div>
+            <div>Doanh số kỳ (Kế toán)<br><b style="color:var(--ink);font-size:13px;">${fmtMoney(r.revP)}</b></div>
+            <div>Đơn hàng<br><b style="color:var(--ink);font-size:13px;">${fmtNum(r.ordP)}</b></div>
+            <div>Lượt thăm<br><b style="color:var(--ink);font-size:13px;">${fmtNum(r.visitP)}</b></div>
+            <div>KH ghé thăm<br><b style="color:var(--ink);font-size:13px;">${compText}</b></div>
           </div>
-          ${r.revPSoTay!==null ? `<div style="margin-top:8px;font-size:11px;color:var(--muted);">📝 Doanh số kỳ (Sổ tay): <b style="color:#fff;">${fmtMoney(r.revPSoTay)}</b></div>` : ''}
-          ${r.revPHeSo!==null ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><div style="font-size:11px;color:var(--muted);">Doanh số sau hệ số</div><div style="font-size:16px;font-weight:800;color:#fff;">${fmtMoney(r.revPHeSo)}</div></div>` : ''}
+          ${r.revPSoTay!==null ? `<div style="margin-top:8px;font-size:11px;color:var(--muted);">📝 Doanh số kỳ (Sổ tay): <b style="color:var(--ink);">${fmtMoney(r.revPSoTay)}</b></div>` : ''}
+          ${r.revPHeSo!==null ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><div style="font-size:11px;color:var(--muted);">Doanh số sau hệ số</div><div style="font-size:16px;font-weight:800;color:var(--ink);">${fmtMoney(r.revPHeSo)}</div></div>` : ''}
           <div style="margin-top:10px;">
             <span class="pill ${pillClass}">${pillText}</span>
             <span style="color:var(--muted);font-size:11px;margin-left:4px;">chỉ tiêu tháng (theo Kế toán)</span>
@@ -3747,7 +3911,7 @@
       const itemsHtml = e.items.map(it => {
         const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'great' : it.pct>=80 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
         const barWidth = it.pct===null ? 0 : Math.min(100, it.pct);
-        const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
+        const barColor = it.pct===null ? '#cbd3e3' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
         return `
           <tr>
             <td class="left">${escSvg(it.section)}</td>
@@ -4138,11 +4302,14 @@
   // không phải gọi lại Google Sheet mỗi lần gõ phím.
   let khCustListCache = [];
   let khRankedCache = [];
+  let khMonthKeysCache = [];
+  const KH_TIER_LABEL = { A:'A – Trọng điểm', B:'B – Tiềm năng', C:'C – Thường' };
+  function khMonthLabel(k){ const p = (k||'').split('-'); return p.length === 2 ? 'T' + (+p[1]) + '/' + p[0].slice(2) : k; }
   async function renderKhachHangPage(){
     syncKpiRows();
     const wrapEl = document.getElementById('khDeclineWrap');
     const rankBody = document.querySelector('#khRankTable tbody');
-    document.getElementById('khSub').textContent = 'Đang tải dữ liệu 3 tháng gần nhất…';
+    document.getElementById('khSub').textContent = 'Đang tải dữ liệu 4 tháng gần nhất…';
     wrapEl.innerHTML = '<div class="attn-empty">Đang tải…</div>';
     rankBody.innerHTML = '';
     document.getElementById('khSummaryCards').innerHTML = '';
@@ -4155,7 +4322,7 @@
         wrapEl.innerHTML = '<div class="attn-empty">Cần kết nối Google Sheet để xem xu hướng khách hàng theo tháng.</div>';
         return;
       }
-      const months3 = [0,1,2].map(i => new Date(selectedDate.getFullYear(), selectedDate.getMonth()-i, 1)); // [M, M-1, M-2]
+      const months3 = [0,1,2,3].map(i => new Date(selectedDate.getFullYear(), selectedDate.getMonth()-i, 1)); // [M, M-1, M-2, M-3]
       monthKeys = months3.map(d => monthKey(d));
       try{
         for(const d of months3){
@@ -4166,7 +4333,7 @@
       }catch(err){ console.error(err); }
       ordersTrend = ordersTrend.filter(o => !isExcludedName(o.name));
     } else {
-      monthKeys = Array.from(new Set(orders.map(o=>monthKey(o.date)))).sort().reverse().slice(0,3);
+      monthKeys = Array.from(new Set(orders.map(o=>monthKey(o.date)))).sort().reverse().slice(0,4);
       ordersTrend = orders.filter(o => monthKeys.includes(monthKey(o.date)));
     }
     // Trang này tự fetch lại "Đơn Kế Toán" trực tiếp từ Google Sheet (không đi qua biến `orders` toàn cục
@@ -4197,21 +4364,23 @@
     });
 
     const custList = Object.values(custMap).map(c => {
-      const rev = monthKeys.map(k => c.months[k] || 0); // [M, M-1, M-2] mới nhất trước
+      const rev = monthKeys.map(k => c.months[k] || 0); // [M, M-1, M-2, M-3] mới nhất trước
       const total = rev.reduce((s,v)=>s+v, 0);
       const hasPrev = rev[1] > 0;
       const declining = hasPrev && rev[0] < rev[1];
       const stopped = rev[1] > 0 && rev[0] === 0;
+      // "Mất khách": 2 tháng liền (tháng này + tháng trước) không phát sinh dù các tháng trước đó có mua.
+      const lost = rev[0] === 0 && rev[1] === 0 && (rev[2] > 0 || (rev[3]||0) > 0);
       const decliningStreak = rev.length>=3 && rev[2]>0 && rev[1]>0 && rev[0]>0 && rev[0]<rev[1] && rev[1]<rev[2];
       const dropPct = hasPrev ? ((rev[1]-rev[0])/rev[1]*100) : null;
-      return Object.assign({}, c, {rev, total, declining, stopped, decliningStreak, dropPct});
+      return Object.assign({}, c, {rev, total, declining, stopped, lost, decliningStreak, dropPct});
     }).filter(c => c.total > 0);
 
     // ===== 4 thẻ tổng quan =====
     const totalCust = custList.length;
     const decliningCount = custList.filter(c=>c.declining).length;
     const streakCount = custList.filter(c=>c.decliningStreak).length;
-    const stoppedCount = custList.filter(c=>c.stopped).length;
+    const stoppedCount = custList.filter(c=>c.stopped || c.lost).length;
 
     document.getElementById('khSummaryCards').innerHTML = `
       <div class="kpi-card">
@@ -4234,14 +4403,22 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-icon amber">🚩</div>
-        <div class="kpi-label">Ngừng phát sinh tháng này</div>
+        <div class="kpi-label">Ngừng phát sinh / mất khách</div>
         <div class="kpi-value">${fmtNum(stoppedCount)}</div>
-        <div class="kpi-sub ${stoppedCount>0?'warn':'muted'}">Có đơn tháng trước, tháng này chưa có</div>
+        <div class="kpi-sub ${stoppedCount>0?'warn':'muted'}">Tháng này chưa có đơn dù trước đó từng mua</div>
       </div>
     `;
 
     // Lưu lại toàn bộ danh sách khách hàng (chưa lọc) để mục tìm kiếm ở sidebar có thể lọc
     // ngay tại chỗ mỗi khi gõ, không cần tải lại dữ liệu từ Google Sheet.
+    // Xếp loại A/B/C (ABC theo doanh thu tích lũy 4 tháng) gắn thẳng vào từng khách hàng.
+    {
+      const _r = custList.slice().sort((a,b) => b.total - a.total);
+      const _g = _r.reduce((s,c)=>s+c.total, 0) || 1;
+      let _cum = 0;
+      _r.forEach(c => { _cum += c.total; const p = _cum/_g*100; c.tier = p <= 80 ? 'A' : p <= 95 ? 'B' : 'C'; });
+    }
+    khMonthKeysCache = monthKeys;
     khCustListCache = custList;
 
     // ===== xếp hạng ABC theo doanh thu tích lũy — tính theo TOÀN BỘ khách hàng (không theo kết quả
@@ -4252,7 +4429,7 @@
     khRankedCache = rankedAll.map((c, idx) => {
       cum += c.total;
       const cumPct = cum / grandTotal * 100;
-      const tier = cumPct <= 80 ? 'A' : cumPct <= 95 ? 'B' : 'C';
+      const tier = c.tier || (cumPct <= 80 ? 'A' : cumPct <= 95 ? 'B' : 'C');
       let trend = '→';
       if(c.rev[1] > 0) trend = c.rev[0] > c.rev[1] ? '↑' : (c.rev[0] < c.rev[1] ? '↓' : '→');
       else if(c.rev[0] > 0) trend = '↑';
@@ -4260,6 +4437,108 @@
     });
 
     applyKhSearchFilter();
+    renderKhSteady();
+  }
+
+
+  // ===== fix15: tải 6 tháng gần nhất để phân loại khách hàng tiềm năng / nguy cơ =====
+  let kh6Cache = null, kh6Key = '';
+  async function loadKh6(){
+    const key = dataSource + '|' + monthKey(selectedDate) + '|' + ((typeof currentUser!=='undefined' && currentUser && currentUser.name) || '');
+    if(kh6Cache && kh6Key === key) return kh6Cache;
+    let monthKeys, ord = [];
+    if(dataSource === 'gsheet'){
+      const sheetId = extractSheetId(document.getElementById('gsheetUrl').value);
+      if(!sheetId) return null;
+      const ms = [0,1,2,3,4,5].map(i => new Date(selectedDate.getFullYear(), selectedDate.getMonth()-i, 1));
+      monthKeys = ms.map(d => monthKey(d));
+      const parts = await Promise.all(ms.map(d => fetchTab(sheetId, 'Đơn Kế Toán ' + monthSuffix(d.getFullYear(), d.getMonth()+1), false).then(r=>mapOrderRowsGSheet(r)).catch(()=>[])));
+      parts.forEach(a => { ord = ord.concat(a); });
+      ord = ord.filter(o => !isExcludedName(o.name));
+    } else {
+      monthKeys = Array.from(new Set(orders.map(o=>monthKey(o.date)))).sort().reverse().slice(0,6);
+      ord = orders.filter(o => monthKeys.includes(monthKey(o.date)));
+    }
+    ord = scopeToCurrentUser(ord, o => o.name);
+    const map = {};
+    ord.forEach(o => {
+      const kh = o.khCode || o.khName || 'unknown'; const k = o.name + '|' + kh;
+      if(!map[k]) map[k] = { name:o.name, khCode:o.khCode, khName:o.khName || o.khCode || 'Không rõ', months:{} };
+      const mk = monthKey(o.date); map[k].months[mk] = (map[k].months[mk]||0) + o.rev;
+    });
+    const list = Object.values(map).map(c => {
+      const rev = monthKeys.map(k => c.months[k] || 0);
+      const total = rev.reduce((a,b)=>a+b,0);
+      let last = rev.findIndex(v => v > 0); // 0 = tháng này
+      let streak = 0; const st = last === 0 || last === 1 ? last : -1;
+      if(st >= 0){ for(let i=st;i<rev.length && rev[i]>0;i++) streak++; }
+      return Object.assign({}, c, {rev, total, last, streak});
+    }).filter(c => c.total > 0);
+    kh6Cache = { monthKeys, list }; kh6Key = key;
+    return kh6Cache;
+  }
+  function khMiniBars(rev){
+    const mx = Math.max.apply(null, rev.concat([1]));
+    return '<span style="display:inline-flex;align-items:flex-end;gap:2px;height:22px;">' + rev.slice().reverse().map((v,i,a) => '<span title="' + fmtMoney(v) + '" style="width:8px;height:' + Math.max(2, Math.round(v/mx*22)) + 'px;background:' + (v>0 ? ['#93c5fd','#5eead4','#c4b5fd','#fcd34d','#f9a8d4','#60a5fa'][i%6] : '#e5e7eb') + ';border-radius:2px;"></span>').join('') + '</span>';
+  }
+  function khRevCells(rev){ return rev.slice(0,4).map(v => '<td>' + (v>0 ? fmtMoney(v) : '<span style="color:#cbd5e1;">—</span>') + '</td>').join(''); }
+  function khFold(rows, head, rowFn){
+    const cls = 'khfold' + Math.random().toString(36).slice(2,7);
+    return '<div class="tablewrap"><table><thead>' + head + '</thead><tbody>' + rows.map(rowFn).join('') + '</tbody></table></div>';
+  }
+  function khGroupByEmp(list){
+    const g = {}; list.forEach(c => { (g[c.name] = g[c.name] || []).push(c); });
+    return Object.keys(g).map(n => ({name:n, list:g[n]})).sort((a,b) => b.list.length - a.list.length);
+  }
+  async function renderKhSteady(){
+    const wrap = document.getElementById('khSteadyWrap'); if(!wrap) return;
+    wrap.innerHTML = '<div class="attn-empty">Đang phân tích…</div>';
+    const d = await loadKh6();
+    if(!d){ wrap.innerHTML = '<div class="attn-empty">Cần kết nối Google Sheet.</div>'; return; }
+    const mk = d.monthKeys;
+    const steady = d.list.filter(c => c.streak >= 3).map(c => {
+      const vals = c.rev.slice(c.last, c.last + c.streak);
+      const avg = vals.reduce((a,b)=>a+b,0) / vals.length;
+      const sd = Math.sqrt(vals.reduce((a,b)=>a+(b-avg)*(b-avg),0)/vals.length);
+      const cv = avg ? sd/avg : 0;
+      const latest = c.rev[c.last];
+      let tag, cls;
+      if(latest >= avg*1.2 && c.streak >= 3){ tag = '🚀 Đang tăng'; cls = 'great'; }
+      else if(latest <= avg*0.7){ tag = '⚠️ Đều nhưng giảm'; cls = 'warn'; }
+      else if(c.streak >= 4 && cv < 0.5){ tag = '⭐ Rất đều'; cls = 'great'; }
+      else { tag = '✅ Đều'; cls = 'ok'; }
+      return Object.assign({}, c, {avg, cv, tag, cls});
+    }).sort((a,b) => b.avg - a.avg);
+    document.getElementById('khSteadyBadge').textContent = steady.length + ' khách';
+    if(!steady.length){ wrap.innerHTML = '<div class="attn-empty">Chưa có khách nào mua liên tiếp ≥3 tháng.</div>'; return; }
+    const head = '<tr><th>#</th><th class="left">Khách hàng</th><th>Xu hướng 6 tháng</th>' + mk.slice(0,4).map(m=>'<th>' + m + '</th>').join('') + '<th>Liên tục</th><th>TB/tháng</th><th>Đánh giá</th></tr>';
+    wrap.innerHTML = khGroupByEmp(steady).map(g => '<details class="kpi-emp-details" ' + (g.list.length ? '' : '') + '><summary class="kpi-emp-summary"><div class="kpi-emp-id"><div class="kpi-emp-name">' + escSvg(displayPersonName(g.name)) + '</div></div><span class="badge">' + g.list.length + ' khách đều</span></summary>' +
+      khFold(g.list, head, (c,i) => '<tr><td>' + (i+1) + '</td><td class="left"><b>' + escSvg(c.khName) + '</b><div style="font-size:11px;color:var(--muted);">' + escSvg(c.khCode||'') + '</div></td><td>' + khMiniBars(c.rev) + '</td>' + khRevCells(c.rev) + '<td>' + c.streak + ' tháng</td><td>' + fmtMoney(c.avg) + '</td><td><span class="pill ' + c.cls + '">' + c.tag + '</span></td></tr>') + '</details>').join('');
+  }
+  async function renderKhNguyCoPage(){
+    const w1 = document.getElementById('khncWrap1'), w2 = document.getElementById('khncWrap2');
+    w1.innerHTML = w2.innerHTML = '<div class="attn-empty">Đang phân tích…</div>';
+    const d = await loadKh6();
+    if(currentPage !== 'khnguyco') return;
+    if(!d){ w1.innerHTML = w2.innerHTML = '<div class="attn-empty">Cần kết nối Google Sheet.</div>'; return; }
+    const mk = d.monthKeys;
+    document.getElementById('khncSub').textContent = 'Phân loại theo thời gian ngừng phát sinh, dựa trên ' + mk.slice().reverse().join(' → ');
+    const g2 = d.list.filter(c => c.last === 2).sort((a,b)=>b.total-a.total);
+    const g3 = d.list.filter(c => c.last >= 3).sort((a,b)=>b.total-a.total);
+    const lost = g3.reduce((s,c)=>s+c.total,0), at = g2.reduce((s,c)=>s+c.total,0);
+    document.getElementById('khncB1').textContent = g2.length + ' khách';
+    document.getElementById('khncB2').textContent = g3.length + ' khách';
+    document.getElementById('khncCards').innerHTML =
+      '<div class="kpi-card"><div class="kpi-icon amber">🟠</div><div class="kpi-label">Cần tiếp cận (ngừng 2 tháng)</div><div class="kpi-value">' + fmtNum(g2.length) + '</div><div class="kpi-sub warn">Doanh số 6 tháng: ' + fmtMoney(at) + '</div></div>' +
+      '<div class="kpi-card"><div class="kpi-icon amber">🔴</div><div class="kpi-label">Nguy cơ mất khách (≥3 tháng)</div><div class="kpi-value">' + fmtNum(g3.length) + '</div><div class="kpi-sub warn">Doanh số 6 tháng: ' + fmtMoney(lost) + '</div></div>' +
+      '<div class="kpi-card"><div class="kpi-icon blue">🧑‍🤝‍🧑</div><div class="kpi-label">Tổng khách có phát sinh 6 tháng</div><div class="kpi-value">' + fmtNum(d.list.length) + '</div><div class="kpi-sub muted">Nguy cơ chiếm ' + (d.list.length ? ((g2.length+g3.length)/d.list.length*100).toFixed(1) : 0) + '%</div></div>';
+    const head = '<tr><th>#</th><th class="left">Khách hàng</th><th>Xu hướng 6 tháng</th>' + mk.slice(0,4).map(m=>'<th>' + m + '</th>').join('') + '<th>Mua gần nhất</th><th>Tổng 6 tháng</th></tr>';
+    const draw = (list, el) => {
+      if(!list.length){ el.innerHTML = '<div class="attn-empty">Không có khách hàng thuộc nhóm này 🎉</div>'; return; }
+      el.innerHTML = khGroupByEmp(list).map(g => '<details class="kpi-emp-details"><summary class="kpi-emp-summary"><div class="kpi-emp-id"><div class="kpi-emp-name">' + escSvg(displayPersonName(g.name)) + '</div></div><span class="badge">' + g.list.length + ' khách</span></summary>' +
+        khFold(g.list, head, (c,i) => '<tr><td>' + (i+1) + '</td><td class="left"><b>' + escSvg(c.khName) + '</b><div style="font-size:11px;color:var(--muted);">' + escSvg(c.khCode||'') + '</div></td><td>' + khMiniBars(c.rev) + '</td>' + khRevCells(c.rev) + '<td>' + escSvg(mk[c.last] || '') + ' (' + c.last + ' tháng trước)</td><td><b>' + fmtMoney(c.total) + '</b></td></tr>') + '</details>').join('');
+    };
+    draw(g2, w1); draw(g3, w2);
   }
 
   // Khớp 1 khách hàng với từ khoá tìm kiếm (theo tên KH, mã KH, hoặc tên nhân viên phụ trách).
@@ -4279,10 +4558,12 @@
     const term = (document.getElementById('sidebarSearch').value || '').trim().toLowerCase();
 
     // ===== khối "giảm/ngừng" theo từng nhân viên =====
-    const decliningList = khCustListCache.filter(c => (c.declining || c.stopped) && khSearchMatch(c, term)).sort((a,b) => {
-      const ap = a.dropPct===null?-Infinity:a.dropPct, bp = b.dropPct===null?-Infinity:b.dropPct;
-      return bp - ap;
+    const tierOrd = { A:0, B:1, C:2 };
+    const decliningList = khCustListCache.filter(c => (c.declining || c.stopped || c.lost) && khSearchMatch(c, term)).sort((a,b) => {
+      if(tierOrd[a.tier] !== tierOrd[b.tier]) return tierOrd[a.tier] - tierOrd[b.tier];
+      return b.total - a.total;
     });
+    const mk4 = khMonthKeysCache.slice().reverse(); // cũ nhất → mới nhất
     document.getElementById('khDeclineBadge').textContent = decliningList.length + ' khách hàng';
 
     const byEmp = {};
@@ -4297,15 +4578,19 @@
       wrapEl.innerHTML = empNamesSorted.map((name, idx) => {
         const list = byEmp[name];
         const rowsHtml = list.map(c => {
-          const revCells = c.rev.map(v => fmtCompact(v)).join(' → ');
-          const tag = c.stopped
-            ? '<span class="pill urgent">Ngừng phát sinh</span>'
-            : (c.decliningStreak ? '<span class="pill urgent">Giảm liên tục</span>' : '<span class="pill warn">Giảm</span>');
+          const monthCells = c.rev.slice().reverse().map((v, i) => `<td${i === c.rev.length-1 ? ' style="font-weight:700;"' : ''}>${v ? fmtCompact(v) : '<span style="color:var(--muted);">—</span>'}</td>`).join('');
+          const tag = c.lost
+            ? '<span class="pill urgent">Mất khách</span>'
+            : c.stopped
+              ? '<span class="pill urgent">Ngừng phát sinh</span>'
+              : (c.decliningStreak ? '<span class="pill urgent">Giảm liên tục</span>' : '<span class="pill warn">Giảm</span>');
+          const tierCls = c.tier==='A' ? 'ok' : c.tier==='B' ? 'warn' : 'na';
           return `
             <tr>
               <td class="left">${escSvg(c.khName)}${c.khCode ? ' <span style="color:var(--muted);">('+escSvg(c.khCode)+')</span>' : ''}</td>
-              <td>${revCells} đ</td>
-              <td>${c.dropPct===null ? '—' : c.dropPct.toFixed(1)+'%'}</td>
+              ${monthCells}
+              <td style="font-weight:700;">${fmtCompact(c.total)}</td>
+              <td><span class="pill ${tierCls}">${KH_TIER_LABEL[c.tier]}</span></td>
               <td>${tag}</td>
             </tr>`;
         }).join('');
@@ -4314,7 +4599,7 @@
             <summary class="kpi-emp-summary">
               <div class="kpi-emp-id">
                 <div class="kpi-emp-name">${escSvg(name)}</div>
-                <div class="kpi-emp-meta">${list.length} khách hàng giảm/ngừng phát sinh</div>
+                <div class="kpi-emp-meta">${list.length} khách hàng giảm/ngừng/mất · hạng A: ${list.filter(x=>x.tier==='A').length} · hạng B: ${list.filter(x=>x.tier==='B').length} · hạng C: ${list.filter(x=>x.tier==='C').length}</div>
               </div>
               <div class="kpi-emp-quick">${list.length}</div>
             </summary>
@@ -4323,8 +4608,9 @@
                 <thead>
                   <tr>
                     <th class="left">Khách hàng</th>
-                    <th>Doanh thu (mới nhất → cũ nhất)</th>
-                    <th>% thay đổi so tháng trước</th>
+                    ${mk4.map(k => '<th>' + khMonthLabel(k) + '</th>').join('')}
+                    <th>Tổng 4 tháng</th>
+                    <th>Xếp loại</th>
                     <th>Trạng thái</th>
                   </tr>
                 </thead>
@@ -4350,7 +4636,7 @@
           <td class="left">${escSvg(c.name)}</td>
           <td>${fmtMoney(c.total)}</td>
           <td>${c.cumPct.toFixed(1)}%</td>
-          <td><span class="pill ${tierCls}">${c.tier}</span></td>
+          <td><span class="pill ${tierCls}">${KH_TIER_LABEL[c.tier]}</span></td>
           <td><span class="pill ${trendCls}">${c.trend}</span></td>
         </tr>`;
     }).join('') || (term
@@ -5490,7 +5776,7 @@
                 <tbody>${e.kpiItems.map(it => {
                   const pctCls = it.pct===null ? 'na' : (it.pct>=100 ? 'great' : it.pct>=80 ? 'ok' : it.pct>=50 ? 'warn' : 'urgent');
                   const barWidth = it.pct===null ? 0 : Math.min(100, it.pct);
-                  const barColor = it.pct===null ? '#39415c' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
+                  const barColor = it.pct===null ? '#cbd3e3' : (it.pct>=100 ? '#22c55e' : it.pct>=80 ? '#3b82f6' : it.pct>=50 ? '#f59e0b' : '#ef4444');
                   return `
                   <tr>
                     <td class="left">${escSvg(it.section)}</td>
@@ -6141,6 +6427,328 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
   //  - Điểm bán: số khách hàng KHÁC NHAU (mã KH) đã mua sản phẩm trong kỳ (đếm riêng, không cộng dồn theo từng người).
   //  - Sản lượng: tổng số lượng bán ra. Kèm tăng trưởng so với kỳ liền trước.
   // Chỉ tiêu team theo từng tháng: ưu tiên dòng SS (đã là tổng cả team); nếu không có thì cộng các dòng còn lại. Quý = cộng 3 tháng.
+  // ================= TRANG "PHÂN TÍCH BC CALL" =================
+  // Tổng hợp nội dung báo cáo call (cột O "Báo cáo" của tab Call MM/YY) của từng nhân viên trong NGÀY đang chọn.
+  // Chọn ngày bằng ô "Ngày xem" ở trên hoặc bấm các ô ngày có dữ liệu call của tháng.
+  const BC_TOPICS = [
+    { key:'order',  label:'Chốt/đặt hàng', cls:'ok',     re:/(len don|chot don|da dat|dat hang|nhap hang|xuat hang|lay don|da lay|dong y lay|dong y mua|da mua|chuyen khoan)/ },
+    { key:'follow', label:'Hẹn lần sau',   cls:'info',   re:/(hen |hen$|tuan sau|lan sau|ngay mai|goi lai|quay lai|xem lai|suy nghi|bao gia|cho xem)/ },
+    { key:'stock',  label:'Tồn kho/bán chậm', cls:'warn', re:/(con ton|ton kho|ton nhieu|con nhieu|con hang|con nguyen|chua ban het|ban cham|chua het hang|hang ton|het hang|thieu hang|chua ban|moi ban duoc)/ },
+    { key:'price',  label:'Giá/CK/KM',     cls:'warn',   re:/(gia |chiet khau|\bck\b|khuyen mai|\bkm\b|gia cao|re hon|giam gia)/ },
+    { key:'compete',label:'Đối thủ/cạnh tranh', cls:'urgent', re:/(doi thu|hang khac|cong ty khac|thuong hieu khac|cung loai|cung chuyen khoa|dang dung|dang ban hang)/ },
+    { key:'refuse', label:'Từ chối/đóng cửa', cls:'urgent', re:/(khong co nhu cau|chua co nhu cau|tu choi|khong lay|\bk lay|\bko lay|khong mua|\bk mua|chua lay|chua mua|khong chiu|khong ban|khong can|khong de|khach dong cua|nghi ban|dong cua|chua gap|khong gap)/ },
+  ];
+  function bcTopicsOf(text){
+    const t = normalizeProdText(text) + ' ';
+    const refuse = BC_TOPICS.find(tp => tp.key === 'refuse').re.test(t);
+    // Khách "không lấy/chưa lấy" thì không tính là chốt đơn, trừ khi báo cáo nói rõ đã lên/chốt đơn.
+    return BC_TOPICS.filter(tp => tp.re.test(t) && !(tp.key === 'order' && refuse && !/(len don|chot don|da dat|dat hang)/.test(t)));
+  }
+  function bcTime(raw){
+    const m = (raw||'').toString().match(/(\d{1,2}):(\d{2})/);
+    return m ? (pad(+m[1]) + ':' + m[2]) : '';
+  }
+  function renderBcCallPage(){
+    const day0 = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0,0,0,0);
+    const day1 = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23,59,59,999);
+    document.getElementById('bccallSub').textContent = 'Ngày ' + fmtDate(day0) + ' · nội dung báo cáo call lấy từ cột O (Báo cáo) của tab Call trong Google Sheet nguồn · chọn ngày bằng ô "Ngày xem" hoặc các ô ngày bên dưới';
+    // Dải ô ngày của tháng đang xem (chỉ những ngày có call)
+    const ms = startOfMonth(selectedDate), me = endOfMonth(selectedDate);
+    const perDay = {};
+    calls.forEach(c => { if(inRange(c.date, ms, me)){ const k = c.date.getDate(); perDay[k] = (perDay[k]||0) + 1; } });
+    const daysEl = document.getElementById('bccallDays');
+    daysEl.innerHTML = Object.keys(perDay).map(Number).sort((a,b)=>a-b).map(d => {
+      const dt = new Date(ms.getFullYear(), ms.getMonth(), d);
+      const wd = ['CN','T2','T3','T4','T5','T6','T7'][dt.getDay()];
+      const active = d === selectedDate.getDate();
+      return `<button type="button" data-bcday="${ymd(dt)}" style="cursor:pointer;border-radius:8px;padding:5px 10px;font-size:12px;border:1px solid ${active?'var(--accent,#3b82f6)':'var(--border)'};background:${active?'var(--accent,#3b82f6)':'transparent'};color:${active?'#fff':'var(--ink)'}">${wd} ${pad(d)}/${pad(ms.getMonth()+1)} <small style="opacity:.7">(${perDay[d]})</small></button>`;
+    }).join('') || '<span style="color:var(--muted);font-size:12px;">Tháng này chưa có dữ liệu call.</span>';
+    daysEl.querySelectorAll('button[data-bcday]').forEach(b => b.addEventListener('click', function(){
+      const inp = document.getElementById('dateInput');
+      inp.value = this.getAttribute('data-bcday');
+      inp.dispatchEvent(new Event('change'));
+    }));
+
+    const term = getSidebarSearchTerm();
+    const dayCalls = calls.filter(c => inRange(c.date, day0, day1));
+    const names = allEmployeeNames.filter(n => !term || employeeMatchesSearch(n, term));
+    const groups = names.map(name => {
+      const list = dayCalls.filter(c => normalizeName(c.name) === normalizeName(name))
+        .sort((a,b) => (bcTime(a.timeIn) < bcTime(b.timeIn) ? -1 : 1));
+      const withRep = list.filter(c => c.report);
+      const topics = {};
+      withRep.forEach(c => bcTopicsOf(c.report).forEach(tp => { topics[tp.key] = (topics[tp.key]||0) + 1; }));
+      return { name, list, withRep, topics, uniqKh: new Set(list.map(c=>c.khCode).filter(Boolean)).size };
+    }).filter(g => g.list.length || !term).sort((a,b) => b.list.length - a.list.length);
+
+    const totalCalls = groups.reduce((s,g)=>s+g.list.length,0);
+    const totalRep = groups.reduce((s,g)=>s+g.withRep.length,0);
+    const totalTopics = {};
+    groups.forEach(g => Object.keys(g.topics).forEach(k => totalTopics[k] = (totalTopics[k]||0) + g.topics[k]));
+    const card = (lab, val, sub) => `<div class="panel" style="padding:12px 14px;margin:0;"><div style="font-size:11px;color:var(--muted);">${lab}</div><div style="font-size:22px;font-weight:800;margin:3px 0;">${val}</div><div style="font-size:11px;color:var(--muted);">${sub}</div></div>`;
+    const topTop = BC_TOPICS.filter(tp => totalTopics[tp.key]).sort((a,b)=>totalTopics[b.key]-totalTopics[a.key]).slice(0,3).map(tp => tp.label + ' (' + totalTopics[tp.key] + ')').join(' · ') || '—';
+    document.getElementById('bccallSummary').innerHTML =
+      card('Tổng lượt call trong ngày', fmtNum(totalCalls), groups.filter(g=>g.list.length).length + ' nhân viên có check-in') +
+      card('Có nội dung báo cáo', fmtNum(totalRep), totalCalls ? (totalRep/totalCalls*100).toFixed(0) + '% số lượt call' : '—') +
+      card('Chưa có báo cáo', fmtNum(totalCalls-totalRep), 'cần nhắc nhân viên điền báo cáo call') +
+      card('Chủ đề nổi bật', '<span style="font-size:13px;">' + escSvg(topTop) + '</span>', 'phân loại tự động theo từ khoá trong báo cáo');
+
+    const body = document.getElementById('bccallBody');
+    if(!totalCalls){
+      body.innerHTML = '<div class="attn-empty">Không có lượt call nào trong ngày ' + fmtDate(day0) + '. Chọn ngày khác ở dải ô ngày phía trên.</div>';
+      return;
+    }
+    body.innerHTML = groups.filter(g => g.list.length).map(g => {
+      const chips = BC_TOPICS.filter(tp => g.topics[tp.key]).map(tp => `<span class="pill ${tp.cls}" style="margin-right:4px;">${tp.label}: ${g.topics[tp.key]}</span>`).join('') || '<span style="color:var(--muted);font-size:11px;">Chưa phân loại được chủ đề</span>';
+      const rows = g.list.map(c => {
+        const tags = bcTopicsOf(c.report).map(tp => `<span class="pill ${tp.cls}" style="font-size:10px;margin-left:4px;">${tp.label}</span>`).join('');
+        return `<tr><td style="white-space:nowrap;color:var(--muted);">${escSvg(bcTime(c.timeIn))}${c.timeOut ? '–' + escSvg(bcTime(c.timeOut)) : ''}</td>
+          <td class="left" style="min-width:160px;"><b>${escSvg(c.khName || c.khCode || '—')}</b></td>
+          <td class="left" style="white-space:normal;line-height:1.45;">${c.report ? escSvg(c.report) : '<span style="color:var(--muted);">(chưa có báo cáo)</span>'}${tags}</td></tr>`;
+      }).join('');
+      const head = `<span>📞 ${escSvg(displayPersonName(g.name))}</span><span class="badge">${g.list.length} call · ${g.uniqKh} khách · ${g.withRep.length} có báo cáo</span>`;
+      const inner = `<div style="margin:2px 0 10px;">${chips}</div>
+        <div class="tablewrap"><table><thead><tr><th class="left" style="width:90px;">Giờ</th><th class="left">Khách hàng</th><th class="left">Nội dung báo cáo (cột O)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      // Mai Anh Tuấn (SS): thu gọn, chỉ bấm vào mới xổ ra.
+      if(normalizeName(g.name) === normalizeName('Mai Anh Tuấn')){
+        return `<details class="panel" style="margin-bottom:14px;"><summary class="section-title" style="cursor:pointer;list-style:none;margin:0;">${head}<span style="margin-left:8px;color:var(--muted);font-size:11px;">▼ bấm để xem</span></summary><div style="margin-top:10px;">${inner}</div></details>`;
+      }
+      return `<div class="panel" style="margin-bottom:14px;"><h3 class="section-title">${head}</h3>${inner}</div>`;
+    }).join('');
+  }
+
+  // ================= TRANG "PHÂN TÍCH BC CALL" =================
+  // Phân tích nội dung báo cáo call (cột O) theo KỲ đang chọn (Ngày/Tuần/Tháng/Quý): chủ đề từng nhân viên,
+  // tỉ lệ khách được call có mua, và danh sách khách đã ghé nhiều lần mà chưa phát sinh đơn.
+  function renderBcAnalysisPage(){
+    const range = getPeriodRange();
+    document.getElementById('bcaSub').textContent = 'Kỳ ' + range.label + ' · nguồn: cột O (Báo cáo) của tab Call + Đơn Kế Toán · chủ đề phân loại tự động theo từ khoá trong nội dung báo cáo';
+    const term = getSidebarSearchTerm();
+    const cl = calls.filter(c => inRange(c.date, range.start, range.end));
+    const od = orders.filter(o => inRange(o.date, range.start, range.end));
+    const names = allEmployeeNames.filter(n => !term || employeeMatchesSearch(n, term));
+    const boughtBy = {};
+    od.forEach(o => { const k = normalizeName(o.name); (boughtBy[k] = boughtBy[k] || new Set()).add(o.khCode); });
+    const rows = names.map(name => {
+      const k = normalizeName(name);
+      const list = cl.filter(c => normalizeName(c.name) === k);
+      const withRep = list.filter(c => c.report);
+      const topics = {}; withRep.forEach(c => bcTopicsOf(c.report).forEach(tp => { topics[tp.key] = (topics[tp.key]||0) + 1; }));
+      const kh = new Set(list.map(c => c.khCode).filter(Boolean));
+      const bought = boughtBy[k] || new Set();
+      const khBuy = [...kh].filter(x => bought.has(x)).length;
+      return { name, k, list, withRep, topics, kh: kh.size, khBuy };
+    }).filter(r => r.list.length).sort((a,b) => b.list.length - a.list.length);
+    const tot = rows.reduce((a,r) => ({ call:a.call+r.list.length, rep:a.rep+r.withRep.length, kh:a.kh+r.kh, buy:a.buy+r.khBuy }), {call:0,rep:0,kh:0,buy:0});
+    const totT = {}; rows.forEach(r => Object.keys(r.topics).forEach(k => totT[k] = (totT[k]||0) + r.topics[k]));
+    const card = (lab, val, sub) => `<div class="panel" style="padding:12px 14px;margin:0;"><div style="font-size:11px;color:var(--muted);">${lab}</div><div style="font-size:22px;font-weight:800;margin:3px 0;">${val}</div><div style="font-size:11px;color:var(--muted);">${sub}</div></div>`;
+    document.getElementById('bcaCards').innerHTML =
+      card('Tổng lượt call', fmtNum(tot.call), rows.length + ' nhân viên có check-in') +
+      card('Tỉ lệ có báo cáo', tot.call ? (tot.rep/tot.call*100).toFixed(0) + '%' : '—', fmtNum(tot.rep) + ' / ' + fmtNum(tot.call) + ' lượt') +
+      card('Khách được call có mua', tot.kh ? (tot.buy/tot.kh*100).toFixed(0) + '%' : '—', fmtNum(tot.buy) + ' / ' + fmtNum(tot.kh) + ' khách (tính theo từng nhân viên)') +
+      card('Lượt call / khách', tot.kh ? (tot.call/tot.kh).toFixed(1) : '—', 'mức ghé trung bình mỗi khách trong kỳ');
+    if(!tot.call){
+      ['bcaInsights','bcaTable','bcaHot','bcaEmp'].forEach(id => document.getElementById(id).innerHTML = '');
+      document.getElementById('bcaTable').innerHTML = '<div class="attn-empty">Không có lượt call nào trong kỳ này.</div>';
+      return;
+    }
+    // ----- Nhận định tự động -----
+    const ins = [];
+    const topics = BC_TOPICS.filter(tp => totT[tp.key]).sort((a,b) => totT[b.key]-totT[a.key]);
+    if(topics.length) ins.push('Chủ đề xuất hiện nhiều nhất trong báo cáo: <b>' + topics.slice(0,3).map(tp => tp.label + ' (' + totT[tp.key] + ' lượt, ' + (totT[tp.key]/Math.max(1,tot.rep)*100).toFixed(0) + '%)').join('</b>, <b>') + '</b>.');
+    const stockPct = (totT.stock||0)/Math.max(1,tot.rep)*100, refPct = (totT.refuse||0)/Math.max(1,tot.rep)*100;
+    if(stockPct >= 15) ins.push('<b>' + stockPct.toFixed(0) + '%</b> báo cáo nêu khách còn tồn / bán chậm — nên ưu tiên hỗ trợ kéo hàng ra (poster, trưng bày, khuyến mãi bán lẻ) trước khi đẩy đơn mới.');
+    if(refPct >= 20) ins.push('<b>' + refPct.toFixed(0) + '%</b> báo cáo là khách từ chối/đóng cửa/chưa gặp được — cần rà lại lịch ghé (giờ mở cửa) và nhóm khách ưu tiên.');
+    const lowRep = rows.filter(r => r.list.length >= 5 && r.withRep.length/r.list.length < 0.8);
+    if(lowRep.length) ins.push('Nhân viên có tỉ lệ điền báo cáo dưới 80%: <b>' + lowRep.map(r => displayPersonName(r.name) + ' (' + (r.withRep.length/r.list.length*100).toFixed(0) + '%)').join(', ') + '</b>.');
+    const lowConv = rows.filter(r => r.kh >= 8).sort((a,b) => a.khBuy/a.kh - b.khBuy/b.kh)[0];
+    if(lowConv) ins.push('Tỉ lệ khách được call có mua thấp nhất: <b>' + displayPersonName(lowConv.name) + '</b> (' + lowConv.khBuy + '/' + lowConv.kh + ' khách, ' + (lowConv.khBuy/lowConv.kh*100).toFixed(0) + '%).');
+    document.getElementById('bcaInsights').innerHTML = '<div class="panel"><h3 class="section-title"><span>💡 Nhận định nhanh</span></h3><ul style="margin:0;padding-left:20px;line-height:1.8;font-size:13px;">' + ins.map(x => '<li>' + x + '</li>').join('') + '</ul></div>';
+    // ----- Bảng theo nhân viên -----
+    const th = BC_TOPICS.map(tp => '<th>' + tp.label + '</th>').join('');
+    const trs = rows.map(r => {
+      const cells = BC_TOPICS.map(tp => { const v = r.topics[tp.key]||0; return '<td>' + (v ? '<span class="pill ' + tp.cls + '">' + v + '</span>' : '<span style="color:var(--muted);">0</span>') + '</td>'; }).join('');
+      const conv = r.kh ? (r.khBuy/r.kh*100) : null;
+      const convCls = conv === null ? 'na' : conv >= 40 ? 'great' : conv >= 20 ? 'ok' : conv >= 10 ? 'warn' : 'urgent';
+      return '<tr><td class="left"><b>' + escSvg(displayPersonName(r.name)) + '</b></td><td>' + r.list.length + '</td><td>' + r.kh + '</td><td>' + (r.withRep.length/r.list.length*100).toFixed(0) + '%</td>' + cells +
+        '<td><span class="pill ' + convCls + '">' + (conv === null ? '—' : conv.toFixed(0) + '%') + '</span></td></tr>';
+    }).join('');
+    document.getElementById('bcaTable').innerHTML = '<div class="panel"><h3 class="section-title"><span>👥 Chủ đề báo cáo call theo nhân viên</span><span class="badge">' + range.label + '</span></h3>' +
+      '<div class="legend-note">Mỗi ô là số lượt call có báo cáo thuộc chủ đề đó (một báo cáo có thể thuộc nhiều chủ đề). "Khách có mua" = tỉ lệ khách được nhân viên call trong kỳ có phát sinh đơn Kế Toán trong cùng kỳ.</div>' +
+      '<div class="tablewrap"><table><thead><tr><th class="left">Nhân viên</th><th>Call</th><th>Khách</th><th>Có BC</th>' + th + '<th>Khách có mua</th></tr></thead><tbody>' + trs + '</tbody></table></div></div>';
+    // ----- Khách ghé nhiều lần chưa mua -----
+    const hot = [];
+    rows.forEach(r => {
+      const byKh = {};
+      r.list.forEach(c => { if(!c.khCode) return; (byKh[c.khCode] = byKh[c.khCode] || []).push(c); });
+      const bought = boughtBy[r.k] || new Set();
+      Object.keys(byKh).forEach(code => {
+        if(bought.has(code) || byKh[code].length < 3) return;
+        const arr = byKh[code].slice().sort((a,b) => a.date - b.date);
+        const last = arr[arr.length-1];
+        hot.push({ emp: r.name, kh: last.khName || code, n: arr.length, last: last.report || '', lastDate: last.date });
+      });
+    });
+    hot.sort((a,b) => b.n - a.n);
+    document.getElementById('bcaHot').innerHTML = '<details class="panel"><summary class="section-title" style="cursor:pointer;margin:0;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>🎯 Khách đã ghé từ 3 lần nhưng chưa phát sinh đơn</span><span class="badge" style="font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:2px 8px;">' + hot.length + ' khách</span><span style="margin-left:auto;color:var(--muted);font-size:11px;font-weight:400;">▼ bấm để xem</span></summary><div style="margin-top:12px;">' +
+      (hot.length ? '<div class="legend-note">Cần SS/TDV bàn hướng xử lý (đổi cách tiếp cận, hỗ trợ trưng bày/khuyến mãi hoặc giảm tần suất ghé). Hiển thị tối đa 25 khách có số lần ghé nhiều nhất.</div><div class="tablewrap"><table><thead><tr><th class="left">Khách hàng</th><th class="left">Nhân viên</th><th>Số lần ghé</th><th class="left">Báo cáo gần nhất</th></tr></thead><tbody>' +
+        hot.slice(0,25).map(h => '<tr><td class="left"><b>' + escSvg(h.kh) + '</b></td><td class="left">' + escSvg(displayPersonName(h.emp)) + '</td><td><span class="pill urgent">' + h.n + '</span></td><td class="left" style="white-space:normal;line-height:1.45;">' + escSvg(h.last || '(chưa có báo cáo)') + '</td></tr>').join('') + '</tbody></table></div>'
+        : '<div class="attn-empty">Không có khách nào ghé từ 3 lần mà chưa mua trong kỳ này.</div>') + '</div></details>';
+    renderBcEmployeePlans(range, rows);
+  }
+
+  // ---------- Kế hoạch theo từng nhân viên: khách đã chốt đơn + khách hẹn lần sau ----------
+  // Nhóm sản phẩm theo 2 từ đầu của tên chuẩn hoá (bỏ cụm mô tả chung) để gộp biến thể cùng 1 sản phẩm.
+  function bcProdGroup(name){
+    let t = normalizeProdText(name).replace(/^(dung dich xit mui|dung dich nho mui|thuc pham bo sung|dung dich|vien uong|bo )\s*/,'');
+    const toks = t.split(' ').filter(x => x && !/^\d/.test(x));
+    return toks.slice(0, 2).join(' ');
+  }
+  const BC_PROD_ALIASES = { canxi:'premical', 'men':'progermila', atiso:'actiso', actiso:'actiso', 'xit mui':'nebusal', 'xit':'nebusal', 'ho':'', 'vitamin':'', 'omega':'omega', 'tigin':'tigin' };
+  // Tìm sản phẩm khách nhắc tới trong báo cáo: khớp từ khoá đầu của các sản phẩm đã có đơn trong dữ liệu.
+  function bcDetectProducts(text, groupNames){
+    const t = ' ' + normalizeProdText(text) + ' ';
+    const found = [];
+    groupNames.forEach(g => {
+      const first = g.split(' ')[0];
+      if(first.length >= 4 && t.includes(' ' + first + ' ')) found.push(g);
+    });
+    if(!found.length){
+      Object.keys(BC_PROD_ALIASES).forEach(a => {
+        const tgt = BC_PROD_ALIASES[a];
+        if(tgt && t.includes(' ' + a + ' ')){ const g = groupNames.find(x => x.split(' ')[0] === tgt); if(g && !found.includes(g)) found.push(g); }
+      });
+    }
+    return found;
+  }
+  function bcNextVisit(call, topics){
+    const t = ' ' + normalizeProdText(call.report) + ' ';
+    const d0 = new Date(call.date.getFullYear(), call.date.getMonth(), call.date.getDate());
+    let d = null, why = '';
+    const addDays = n => new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + n);
+    let m;
+    if(/ ngay mai /.test(t)){ d = addDays(1); why = 'khách hẹn ngày mai'; }
+    else if((m = t.match(/ thu (2|3|4|5|6|7) /)) || / chu nhat /.test(t)){
+      const want = m ? (+m[1] === 7 ? 6 : +m[1] - 1) : 0; // getDay(): 1=T2 ... 6=T7, 0=CN
+      const wd = m ? (+m[1] === 7 ? 6 : +m[1] - 1) : 0;
+      let x = addDays(1); while(x.getDay() !== wd) x = new Date(x.getFullYear(), x.getMonth(), x.getDate()+1);
+      d = x; why = 'khách hẹn ' + (m ? 'thứ ' + m[1] : 'chủ nhật');
+    }
+    else if(/ tuan sau | tuan toi /.test(t)){ d = addDays(7); why = 'khách hẹn tuần sau'; }
+    else if(/ dau thang | thang sau | thang toi /.test(t)){ d = new Date(call.date.getFullYear(), call.date.getMonth()+1, 2); why = 'khách hẹn đầu tháng sau'; }
+    else if(/ cuoi thang /.test(t)){ d = new Date(call.date.getFullYear(), call.date.getMonth()+1, 0); why = 'khách hẹn cuối tháng'; }
+    else if(topics.some(x => x.key === 'stock')){ d = addDays(10); why = 'khách còn tồn — chờ bán bớt rồi ghé lại'; }
+    else { d = addDays(7); why = 'chưa có hẹn cụ thể — ghé lại sau 7 ngày'; }
+    if(d.getDay() === 0) d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1); // tránh Chủ nhật
+    return { date: d, why };
+  }
+  function bcPitch(topics, recText){
+    const keys = topics.map(x => x.key);
+    const rec = recText ? (' Chào kèm: ' + recText + '.') : '';
+    if(keys.includes('refuse')) return 'Gọi điện/nhắn Zalo xác nhận giờ khách có mặt trước khi ghé; lần này mang mẫu/ưu đãi nhỏ để mở lại cuộc nói chuyện, không ép đơn lớn.' + rec;
+    if(keys.includes('stock')) return 'Chưa chào đơn mới: hỗ trợ kéo hàng ra (trưng bày, tư vấn cho người bán, khuyến mãi bán lẻ) rồi mới đề xuất đặt bổ sung khi hàng tồn đã giảm.' + rec;
+    if(keys.includes('price')) return 'Báo giá theo combo/chương trình chiết khấu hiện hành, nhấn mạnh lợi nhuận bán lẻ và tốc độ quay vòng thay vì giá nhập.' + rec;
+    if(keys.includes('compete')) return 'Nêu điểm khác biệt so với hàng khách đang bán, đề nghị lấy thử số lượng nhỏ kèm hỗ trợ bán.' + rec;
+    return 'Ghé đúng hẹn, mang sẵn sản phẩm khách đã hẹn và chốt số lượng cụ thể ngay tại buổi ghé.' + rec;
+  }
+  function renderBcEmployeePlans(range, rows){
+    const wrap = document.getElementById('bcaEmp');
+    const mStart = startOfMonth(selectedDate), mEnd = endOfMonth(selectedDate);
+    const odAll = orders.filter(o => o.rev > 0 || o.qty > 0).filter(o => !/(thuy tinh|glass box|dong ho|tui vai|moc khoa|khan tam|balo|dep |sac du phong|tranh ghep|ao mua|may tinh|nhiet ke|chiet khau)/.test(normalizeProdText(o.prodName)));
+    const od = odAll.filter(o => inRange(o.date, range.start, range.end));
+    const groupNames = Array.from(new Set(odAll.map(o => bcProdGroup(o.prodName)).filter(Boolean)));
+    // Sản phẩm KPI (dùng làm danh mục gợi ý bán kèm) + ma trận "khách đã mua sản phẩm KPI nào" trên toàn bộ dữ liệu đã tải
+    const kpiProds = [];
+    (kpiDetailRows||[]).forEach(r => r.items.forEach(it => { if(it.product && !it.manual && !kpiProds.some(p => p.product === it.product)) kpiProds.push({ product: it.product }); }));
+    const prodsByKh = {};
+    odAll.forEach(o => { if(o.khCode){ (prodsByKh[o.khCode] = prodsByKh[o.khCode] || new Set()).add(o.prodName); } });
+    const boughtKpi = {}; // khCode -> Set(index kpiProds)
+    Object.keys(prodsByKh).forEach(kh => {
+      const set = new Set();
+      kpiProds.forEach((kp, i) => { for(const pn of prodsByKh[kh]){ if(productMatch(kp.product, pn)){ set.add(i); break; } } });
+      boughtKpi[kh] = set;
+    });
+    const cnt = new Array(kpiProds.length).fill(0), co = kpiProds.map(() => new Array(kpiProds.length).fill(0));
+    Object.values(boughtKpi).forEach(set => { set.forEach(i => { cnt[i]++; set.forEach(j => { if(i !== j) co[i][j]++; }); }); });
+    const empHtml = [];
+    rows.forEach(r => {
+      const name = r.name, k = r.k;
+      const kr = (kpiDetailRows||[]).filter(x => normalizeName(x.name) === k && (x.viTri||'').trim().toUpperCase() !== 'SS')[0] || (kpiDetailRows||[]).find(x => normalizeName(x.name) === k);
+      // % đạt KPI sản phẩm của nhân viên (tháng đang xem) -> ưu tiên đẩy sản phẩm đang thiếu
+      const monthOrders = empOrdersForKpi(name, orders.filter(o => inRange(o.date, mStart, mEnd)));
+      const shortfall = kpiProds.map(kp => {
+        const it = kr ? kr.items.find(x => x.product === kp.product && x.target > 0) : null;
+        if(!it) return { pct: null, w: 0.35 };
+        const act = computeKpiActual(it, monthOrders); const pct = act === null ? null : act/it.target*100;
+        return { pct, w: pct === null ? 0.35 : Math.max(0, 1 - Math.min(pct,100)/100) };
+      });
+      const recFor = (khCode) => {
+        const have = boughtKpi[khCode] || new Set();
+        const scored = kpiProds.map((kp, j) => {
+          if(have.has(j)) return null;
+          let conf = 0; have.forEach(i => { if(cnt[i]) conf += co[i][j]/cnt[i]; });
+          conf = have.size ? conf/have.size : (cnt[j] ? cnt[j]/Math.max(1,Object.keys(boughtKpi).length) : 0);
+          return { j, score: shortfall[j].w * 2 + conf, conf, pct: shortfall[j].pct };
+        }).filter(Boolean).sort((a,b) => b.score - a.score).slice(0, 2);
+        return scored.map(x => {
+          const sp = kpiProds[x.j].product.split(' - ')[0];
+          const why = (x.pct !== null && x.pct < 100 ? 'KPI đang ' + x.pct.toFixed(0) + '%' : 'bán tốt cùng nhóm') + (x.conf > 0.05 ? ', ' + (x.conf*100).toFixed(0) + '% khách mua nhóm hiện tại cũng mua' : '');
+          return '<b>' + escSvg(sp) + '</b> (' + why + ')';
+        });
+      };
+      // ----- khách đã chốt đơn trong kỳ (có đơn Kế Toán) -----
+      const myOd = od.filter(o => normalizeName(o.name) === k);
+      const byKh = {};
+      myOd.forEach(o => { const c = o.khCode || o.khName; (byKh[c] = byKh[c] || { code:o.khCode, name:o.khName || o.khCode, rev:0, prods:{} }); byKh[c].rev += o.rev; const g = o.prodName; byKh[c].prods[g] = (byKh[c].prods[g]||0) + o.qty; });
+      const closed = Object.values(byKh).sort((a,b) => b.rev - a.rev);
+      const closedRows = closed.slice(0, 15).map(c => {
+        const prodList = Object.entries(c.prods).sort((a,b) => b[1]-a[1]).slice(0,4).map(([p,q]) => escSvg(p.replace(/\(.*?\)/g,'').trim().slice(0,38)) + ' ×' + fmtNum(q)).join('<br>');
+        const rec = recFor(c.code);
+        return '<tr><td class="left"><b>' + escSvg(c.name) + '</b></td><td class="left" style="white-space:normal;line-height:1.5;">' + prodList + '</td><td>' + fmtCompact(c.rev) + '</td><td class="left" style="white-space:normal;line-height:1.5;">' + (rec.length ? rec.join('<br>') : '<span style="color:var(--muted);">Đã mua đủ nhóm KPI</span>') + '</td></tr>';
+      }).join('');
+      // ----- khách hẹn lần sau (báo cáo nhắc hẹn, chưa có đơn sau cuộc call đó) -----
+      const myCalls = cl_ofRange(range).filter(c => normalizeName(c.name) === k && c.report);
+      const lastByKh = {};
+      myCalls.forEach(c => { if(!c.khCode) return; if(!lastByKh[c.khCode] || c.date > lastByKh[c.khCode].date) lastByKh[c.khCode] = c; });
+      const follow = [];
+      Object.values(lastByKh).forEach(c => {
+        const tp = bcTopicsOf(c.report);
+        if(!tp.some(x => x.key === 'follow')) return;
+        const orderedAfter = myOd.some(o => o.khCode === c.khCode && o.date >= new Date(c.date.getFullYear(), c.date.getMonth(), c.date.getDate()));
+        if(orderedAfter) return;
+        follow.push({ c, tp });
+      });
+      follow.sort((a,b) => b.c.date - a.c.date);
+      const today = new Date(); today.setHours(0,0,0,0);
+      const followRows = follow.slice(0, 15).map(({c, tp}) => {
+        const det = bcDetectProducts(c.report, groupNames);
+        const visit = bcNextVisit(c, tp);
+        const rec = recFor(c.khCode).slice(0,1);
+        const overdue = visit.date < today;
+        const wd = ['CN','T2','T3','T4','T5','T6','T7'][visit.date.getDay()];
+        return '<tr><td class="left"><b>' + escSvg(c.khName || c.khCode) + '</b><br><span style="color:var(--muted);font-size:11px;">call ' + fmtDate(c.date) + '</span></td>' +
+          '<td class="left" style="white-space:normal;line-height:1.45;">' + escSvg(c.report) + '</td>' +
+          '<td class="left" style="white-space:normal;">' + (det.length ? det.map(g => '<span class="pill ok" style="margin:1px;">' + escSvg(g) + '</span>').join('') : '<span style="color:var(--muted);">chưa ghi rõ — hỏi lại khi ghé</span>') + '</td>' +
+          '<td class="left" style="white-space:normal;line-height:1.45;"><b>' + wd + ' ' + fmtDate(visit.date) + '</b>' + (overdue ? ' <span class="pill urgent">đã quá hẹn — ghé ngay</span>' : '') + '<br><span style="color:var(--muted);font-size:11px;">' + escSvg(visit.why) + '</span></td>' +
+          '<td class="left" style="white-space:normal;line-height:1.45;font-size:12px;">' + bcPitch(tp, rec.join(', ')) + '</td></tr>';
+      }).join('');
+      const topRec = kpiProds.map((kp, j) => ({ sp: kp.product.split(' - ')[0], w: shortfall[j].w, pct: shortfall[j].pct })).filter(x => x.pct !== null && x.pct < 100).sort((a,b) => b.w - a.w).slice(0,3)
+        .map(x => escSvg(x.sp) + ' (' + x.pct.toFixed(0) + '%)').join(', ');
+      empHtml.push('<details class="kpi-emp-details" open><summary class="kpi-emp-summary"><div class="kpi-emp-id"><div class="kpi-emp-name">' + escSvg(displayPersonName(name)) + '</div>' +
+        '<div class="kpi-emp-meta">' + closed.length + ' khách đã chốt đơn · ' + follow.length + ' khách hẹn lần sau' + (topRec ? ' · cần đẩy: ' + topRec : '') + '</div></div><div class="kpi-emp-quick">▼</div></summary>' +
+        '<div style="padding:4px 14px 14px;">' +
+        '<div style="font-weight:700;margin:8px 0 4px;">✅ Khách đã chốt đơn — sản phẩm đã mua & gợi ý bán kèm lần sau</div>' +
+        (closedRows ? '<div class="tablewrap"><table class="kpi-item-table"><thead><tr><th class="left">Khách hàng</th><th class="left">Đã chốt sản phẩm (SL)</th><th>Doanh số</th><th class="left">Nên chào bán kèm lần sau</th></tr></thead><tbody>' + closedRows + '</tbody></table></div>' + (closed.length > 15 ? '<div class="hint">Hiển thị 15/' + closed.length + ' khách có doanh số cao nhất.</div>' : '') : '<div class="attn-empty">Chưa có khách chốt đơn trong kỳ.</div>') +
+        '<div style="font-weight:700;margin:14px 0 4px;">🕒 Khách hẹn lần sau — hẹn mua gì, ghé lại khi nào, chào bán thế nào</div>' +
+        (followRows ? '<div class="tablewrap"><table class="kpi-item-table"><thead><tr><th class="left">Khách hàng</th><th class="left">Nội dung báo cáo</th><th class="left">SP khách nhắc tới</th><th class="left">Lịch ghé lại đề xuất</th><th class="left">Cách chào bán</th></tr></thead><tbody>' + followRows + '</tbody></table></div>' + (follow.length > 15 ? '<div class="hint">Hiển thị 15/' + follow.length + ' khách hẹn gần nhất.</div>' : '') : '<div class="attn-empty">Không có khách nào ghi hẹn lần sau (và chưa chốt đơn) trong kỳ.</div>') +
+        '</div></details>');
+    });
+    wrap.innerHTML = '<div class="panel"><h3 class="section-title"><span>🧭 Kế hoạch bán hàng theo từng nhân viên (từ báo cáo call)</span><span class="badge">' + range.label + '</span></h3>' +
+      '<div class="legend-note">Khách "đã chốt đơn" = khách có đơn Kế Toán trong kỳ. Gợi ý bán kèm ưu tiên sản phẩm KPI mà nhân viên đang thiếu và thường được các khách cùng nhóm mua chung. Khách "hẹn lần sau" = báo cáo call gần nhất có nội dung hẹn/xem lại và chưa phát sinh đơn sau cuộc call đó. Lịch ghé lại đề xuất suy từ nội dung hẹn (ngày mai, tuần sau, thứ mấy...) hoặc mặc định sau 7 ngày; khách còn tồn thì ghé sau ~10 ngày. Đây là gợi ý theo quy tắc từ khoá, nhân viên cần đối chiếu thực tế.</div>' +
+      (empHtml.join('') || '<div class="attn-empty">Chưa có dữ liệu.</div>') + '</div>';
+  }
+  function cl_ofRange(range){ return calls.filter(c => inRange(c.date, range.start, range.end)); }
+
   function renderSpttPage(){
     syncKpiRows();
     const mKey = monthKey(selectedDate);
@@ -6285,5 +6893,38 @@ Nếu câu trả lời là KHÔNG → phải phân tích sâu hơn. Mục tiêu 
 })();
 </script>
 
+
+<script>
+(function(){
+  var PAL=[['#e0ecff','#1d4ed8'],['#d9f7f1','#0f766e'],['#f1e4ff','#7e22ce'],['#fff0d1','#b45309'],['#ffe1e4','#be123c'],['#e0f7ff','#0369a1'],['#e8f9d4','#4d7c0f'],['#ffe4f3','#be185d'],['#e6e8ff','#4338ca'],['#fff7bf','#a16207']];
+  function norm(t){return String(t||'').toLowerCase().replace(/[0-9]+\s*(g|gam|ml|mg|v|vi|vien|ống|ong|tuýp|tuyp|hộp|hop|chai|lọ|lo)\b/g,'').replace(/[^a-zà-ỹ ]/g,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,2).join(' ');}
+  function tone(t){var k=norm(t),h=0;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))>>>0;return PAL[h%PAL.length];}
+  var SEL='.prod-row-name,.prod-name,.pill.ok,.pill.info,.name-cell';
+  var busy=false;
+  function paint(root){
+    if(busy)return;busy=true;
+    try{
+      (root||document).querySelectorAll('td.left').forEach(function(td){
+        if(td.dataset.tone)return;
+        var th=td.closest('table'); if(!th)return;
+        var hd=th.querySelector('th'); var ht=(hd&&hd.textContent||'').toLowerCase();
+        if(/sản phẩm|sp /.test(ht)&&td.cellIndex===0&&!td.querySelector('.pill')){
+          var c=tone(td.textContent);td.dataset.tone=1;td.style.color=c[1];td.style.fontWeight='600';
+        }
+      });
+      (root||document).querySelectorAll('.prod-row-name,.prod-name').forEach(function(e){
+        if(e.dataset.tone)return;var c=tone(e.textContent);e.dataset.tone=1;e.style.color=c[1];e.style.fontWeight='700';
+      });
+      (root||document).querySelectorAll('td .pill.ok, td .pill.info').forEach(function(e){
+        if(e.dataset.tone)return;var c=/^chốt\/đặt hàng/i.test(e.textContent.trim())?['#d1fae5','#047857']:tone(e.textContent);e.dataset.tone=1;e.style.background=c[0];e.style.color=c[1];e.style.borderColor=c[1]+'33';
+      });
+    }catch(x){}
+    busy=false;
+  }
+  var t=null;
+  new MutationObserver(function(){clearTimeout(t);t=setTimeout(function(){paint(document)},60);}).observe(document.body,{childList:true,subtree:true});
+  paint(document);
+})();
+</script>
 </body>
 </html>
