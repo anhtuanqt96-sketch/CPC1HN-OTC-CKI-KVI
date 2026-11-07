@@ -497,6 +497,11 @@ td.left b{ color:#0b6e99; }
 details.kpi-emp-details:nth-of-type(3n+2) .kpi-emp-summary{ background:linear-gradient(90deg,#e9fbf7,#fff) !important; border-left-color:#14b8a6; }
 details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-gradient(90deg,#f6eeff,#fff) !important; border-left-color:#a855f7; }
 .tone-chip{ display:inline-block; padding:1px 9px; border-radius:999px; font-weight:600; border:1px solid transparent; }
+
+/* fix16: sidebar chữ to đậm */
+.navitem{ font-weight:700 !important; }
+.navitem.active{ font-weight:800 !important; }
+.nav-group-label{ font-weight:800 !important; color:#2f4ec4 !important; }
 </style>
 </head>
 <body>
@@ -552,10 +557,11 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
       <div class="navitem" data-page="kpi"><span class="ic">📶</span><span class="hide-on-collapse">KPI</span></div>
       <div class="navitem" data-page="donhang"><span class="ic">🛒</span><span class="hide-on-collapse">Đơn hàng</span></div>
       <div class="navitem" data-page="khachhang"><span class="ic">🧑‍🤝‍🧑</span><span class="hide-on-collapse">Khách hàng tiềm năng</span></div>
+      <div class="navitem" data-page="tracuu"><span class="ic">🔍</span><span class="hide-on-collapse">Tra cứu</span></div>
       <div class="navitem" data-page="khnguyco"><span class="ic">🚨</span><span class="hide-on-collapse">Khách hàng nguy cơ</span></div>
       <div class="navitem" data-page="cungtuyen"><span class="ic">🗺️</span><span class="hide-on-collapse">Cung tuyến</span></div>
       <div class="navitem" data-page="bccall"><span class="ic">📞</span><span class="hide-on-collapse">Tổng hợp BC Call</span></div>
-      <div class="navitem" data-page="bcanalysis"><span class="ic">🔎</span><span class="hide-on-collapse">Phân tích BC Call</span></div>
+      <div class="navitem" data-page="bcanalysis"><span class="ic">📊</span><span class="hide-on-collapse">Phân tích BC Call</span></div>
       <div class="navitem" data-page="sanpham"><span class="ic">📦</span><span class="hide-on-collapse">Sản phẩm</span></div>
       <div class="navitem" data-page="sptt"><span class="ic">🎯</span><span class="hide-on-collapse">Sản phẩm trọng tâm</span></div>
     </nav>
@@ -1015,6 +1021,22 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
           <div class="legend-note">Khách đã không phát sinh đơn từ 3 tháng trở lên. Cần SS/TDV vào cuộc, tìm nguyên nhân và có chính sách kéo lại.</div>
           <div id="khncWrap2"></div>
         </div>
+      </div>
+
+      <!-- ===== Trang Tra cứu ===== -->
+      <div id="page-tracuu" class="page-view" style="display:none;">
+        <div class="page-h1">Tra <span class="accent">cứu</span></div>
+        <div class="page-sub" id="tcSub"></div>
+        <div class="panel">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="btn-secondary" id="tcTabSp" style="font-weight:700;">📦 Tra cứu sản phẩm</button>
+            <button class="btn-secondary" id="tcTabKh" style="font-weight:700;">🧑‍🤝‍🧑 Tra cứu khách hàng</button>
+          </div>
+          <input type="text" id="tcInput" placeholder="Nhập tên sản phẩm…" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;">
+          <select id="tcEmp" style="display:none;margin-top:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;"><option value="">👥 Tất cả nhân viên</option></select>
+          <div class="legend-note" id="tcHint" style="margin-top:8px;"></div>
+        </div>
+        <div id="tcResult"></div>
       </div>
 
       <!-- ===== Trang Cung tuyến ===== -->
@@ -1547,7 +1569,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
   });
 
   // ---------- điều hướng trang (sidebar) ----------
-  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng tiềm năng', khnguyco:'Khách hàng nguy cơ', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', sptt:'Sản phẩm trọng tâm', bccall:'Tổng hợp BC Call', bcanalysis:'Phân tích BC Call', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
+  const PAGE_TITLES = { tongquan:'Tổng quan', nhanvien:'Nhân viên', kpi:'KPI', donhang:'Đơn hàng', khachhang:'Khách hàng tiềm năng', khnguyco:'Khách hàng nguy cơ', tracuu:'Tra cứu', cungtuyen:'Cung tuyến', sanpham:'Sản phẩm', baocao:'Báo cáo', sptt:'Sản phẩm trọng tâm', bccall:'Tổng hợp BC Call', bcanalysis:'Phân tích BC Call', tailieu:'Tài liệu', aicoach:'AI Sales Coach' };
   let currentPage = 'tongquan';
   document.querySelectorAll('.navitem[data-page]').forEach(item => {
     item.addEventListener('click', function(){
@@ -1562,6 +1584,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
         if(page==='donhang') renderDonHangPage();
         if(page==='khachhang') renderKhachHangPage();
         if(page==='khnguyco') renderKhNguyCoPage();
+        if(page==='tracuu') renderTraCuuPage();
         if(page==='cungtuyen') renderCungTuyenPage();
         if(page==='sanpham') renderSanPhamPage();
         if(page==='sptt') renderSpttPage();
@@ -4540,6 +4563,107 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
     };
     draw(g2, w1); draw(g3, w2);
   }
+
+
+  // ===== fix17: Tra cứu sản phẩm / khách hàng (toàn bộ lịch sử, tối đa 12 tháng gần nhất) =====
+  let tcMode = 'sp', tcCache = null, tcCacheKey = '', tcTimer = null;
+  async function tcLoad(){
+    const key = dataSource + '|' + monthKey(selectedDate) + '|' + ((currentUser && currentUser.name) || '');
+    if(tcCache && tcCacheKey === key) return tcCache;
+    let ord = [];
+    if(dataSource === 'gsheet'){
+      const sheetId = extractSheetId(document.getElementById('gsheetUrl').value);
+      if(!sheetId) return null;
+      const ms = Array.from({length:12}, (_,i) => new Date(selectedDate.getFullYear(), selectedDate.getMonth()-i, 1));
+      const parts = await Promise.all(ms.map(d => fetchTab(sheetId, 'Đơn Kế Toán ' + monthSuffix(d.getFullYear(), d.getMonth()+1), false).then(r=>mapOrderRowsGSheet(r)).catch(()=>[])));
+      parts.forEach(a => { ord = ord.concat(a); });
+      ord = ord.filter(o => !isExcludedName(o.name));
+    } else ord = orders.slice();
+    ord = scopeToCurrentUser(ord, o => o.name);
+    ord.forEach(o => { o._pn = String(o.prodName || o.prodCode || '').trim(); o._mk = monthKey(o.date); });
+    ord = ord.filter(o => o._pn);
+    tcCache = ord; tcCacheKey = key; return ord;
+  }
+  function tcDate(d){ return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear(); }
+  function tcMatch(text, q){
+    const t = normalizeProdText(text), parts = normalizeProdText(q).split(' ').filter(Boolean);
+    return parts.every(w => t.includes(w));
+  }
+  function tcMonthsOf(list){ return Array.from(new Set(list.map(o=>o._mk))).sort(); }
+  async function renderTraCuuPage(){
+    const inp = document.getElementById('tcInput'), res = document.getElementById('tcResult');
+    document.getElementById('tcTabSp').style.background = tcMode==='sp' ? '#dbe6ff' : '';
+    document.getElementById('tcTabKh').style.background = tcMode==='kh' ? '#dbe6ff' : '';
+    inp.placeholder = tcMode==='sp' ? 'Nhập tên hoặc mã sản phẩm…' : 'Nhập tên hoặc mã khách hàng…';
+    document.getElementById('tcHint').textContent = tcMode==='sp'
+      ? 'Xem khách hàng nào đã lấy sản phẩm này, vào thời gian nào và doanh số sản phẩm theo từng tháng.'
+      : 'Xem khách hàng đã từng lấy những sản phẩm gì và doanh số từng tháng.';
+    const q = inp.value.trim();
+    if(!q){ res.innerHTML = '<div class="panel"><div class="attn-empty">Nhập từ khóa để tra cứu.</div></div>'; return; }
+    res.innerHTML = '<div class="panel"><div class="attn-empty">Đang tải dữ liệu…</div></div>';
+    let ord = await tcLoad();
+    if(currentPage !== 'tracuu') return;
+    if(!ord){ res.innerHTML = '<div class="panel"><div class="attn-empty">Cần kết nối Google Sheet.</div></div>'; return; }
+    if(inp.value.trim() !== q) return;
+    const sel = document.getElementById('tcEmp');
+    if(currentUser && currentUser.isManager){
+      const names = Array.from(new Set(ord.map(o=>o.name))).sort((a,b)=>displayPersonName(a).localeCompare(displayPersonName(b),'vi'));
+      if(sel.options.length !== names.length + 1){
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">👥 Tất cả nhân viên</option>' + names.map(n=>'<option value="'+escSvg(n)+'">'+escSvg(displayPersonName(n))+'</option>').join('');
+        sel.value = cur;
+      }
+      sel.style.display = 'block';
+    } else { sel.style.display = 'none'; sel.value = ''; }
+    if(sel.value) ord = ord.filter(o => o.name === sel.value);
+    document.getElementById('tcSub').textContent = 'Dữ liệu đơn hàng từ ' + (tcMonthsOf(ord)[0]||'') + ' đến ' + (tcMonthsOf(ord).slice(-1)[0]||'');
+    res.innerHTML = tcMode==='sp' ? tcRenderSp(ord, q) : tcRenderKh(ord, q);
+  }
+  function tcRenderSp(ord, q){
+    const hit = ord.filter(o => tcMatch(o._pn + ' ' + (o.prodCode||''), q));
+    if(!hit.length) return '<div class="panel"><div class="attn-empty">Không tìm thấy sản phẩm phù hợp.</div></div>';
+    const byP = {}; hit.forEach(o => { (byP[o._pn] = byP[o._pn] || []).push(o); });
+    const prods = Object.keys(byP).sort((a,b) => byP[b].reduce((s,o)=>s+o.rev,0) - byP[a].reduce((s,o)=>s+o.rev,0)).slice(0,8);
+    return prods.map(pn => {
+      const L = byP[pn], mks = tcMonthsOf(L);
+      const mt = {}; L.forEach(o => { const m = mt[o._mk] = mt[o._mk] || {rev:0,qty:0}; m.rev += o.rev; m.qty += o.qty||0; });
+      const totRev = L.reduce((s,o)=>s+o.rev,0), totQty = L.reduce((s,o)=>s+(o.qty||0),0);
+      const byK = {}; L.forEach(o => { const k = (o.khCode||o.khName||'?') + '|' + o.name; (byK[k] = byK[k] || {kh:o.khName||o.khCode, code:o.khCode, emp:o.name, l:[]}).l.push(o); });
+      const khs = Object.values(byK).map(k => { k.rev = k.l.reduce((s,o)=>s+o.rev,0); k.qty = k.l.reduce((s,o)=>s+(o.qty||0),0); k.l.sort((a,b)=>a.date-b.date); return k; }).sort((a,b)=>b.rev-a.rev);
+      return '<div class="panel"><h3 class="section-title"><span>📦 ' + escSvg(pn) + '</span><span class="badge">' + khs.length + ' khách · ' + fmtNum(totQty) + ' SL · ' + fmtMoney(totRev) + '</span></h3>' +
+        '<div class="tablewrap"><table><thead><tr><th class="left">Tháng</th>' + mks.map(m=>'<th>'+m+'</th>').join('') + '<th>Tổng</th></tr></thead><tbody>' +
+        '<tr><td class="left"><b>Doanh số</b></td>' + mks.map(m=>'<td>'+fmtMoney(mt[m].rev)+'</td>').join('') + '<td><b>' + fmtMoney(totRev) + '</b></td></tr>' +
+        '<tr><td class="left"><b>Số lượng</b></td>' + mks.map(m=>'<td>'+fmtNum(mt[m].qty)+'</td>').join('') + '<td><b>' + fmtNum(totQty) + '</b></td></tr></tbody></table></div>' +
+        '<h3 class="section-title" style="margin-top:16px;">🧑‍🤝‍🧑 Khách hàng đã lấy sản phẩm này</h3>' +
+        '<div class="tablewrap"><table><thead><tr><th>#</th><th class="left">Khách hàng</th><th class="left">Nhân viên</th><th>Lần đầu</th><th>Gần nhất</th><th>Số lần</th><th>SL</th><th>Doanh số</th><th class="left">Các ngày lấy (SL)</th></tr></thead><tbody>' +
+        khs.map((k,i) => '<tr><td>'+(i+1)+'</td><td class="left"><b>'+escSvg(k.kh)+'</b><div style="font-size:11px;color:var(--muted);">'+escSvg(k.code||'')+'</div></td><td class="left">'+escSvg(displayPersonName(k.emp))+'</td><td>'+tcDate(k.l[0].date)+'</td><td>'+tcDate(k.l[k.l.length-1].date)+'</td><td>'+k.l.length+'</td><td>'+fmtNum(k.qty)+'</td><td>'+fmtMoney(k.rev)+'</td><td class="left" style="white-space:normal;font-size:12px;">'+k.l.map(o=>'<span class="pill info" style="margin:1px;">'+tcDate(o.date).slice(0,5)+(o.qty?' ('+fmtNum(o.qty)+')':'')+'</span>').join('')+'</td></tr>').join('') +
+        '</tbody></table></div></div>';
+    }).join('');
+  }
+  function tcRenderKh(ord, q){
+    const nq = normalizeProdText(q);
+    const hit = ord.filter(o => normalizeProdText(o.khName||'').includes(nq) || normalizeProdText(o.khCode||'').includes(nq));
+    if(!hit.length) return '<div class="panel"><div class="attn-empty">Không tìm thấy khách hàng phù hợp.</div></div>';
+    const byK = {}; hit.forEach(o => { const k = o.khCode || o.khName; (byK[k] = byK[k] || []).push(o); });
+    const keys = Object.keys(byK).sort((a,b) => byK[b].reduce((s,o)=>s+o.rev,0) - byK[a].reduce((s,o)=>s+o.rev,0)).slice(0,10);
+    const note = Object.keys(byK).length > 10 ? '<div class="legend-note">Có ' + Object.keys(byK).length + ' khách phù hợp, chỉ hiển thị 10 khách doanh số cao nhất — nhập cụ thể hơn để lọc.</div>' : '';
+    return note + keys.map(k => {
+      const L = byK[k], mks = tcMonthsOf(L), first = L[0];
+      const emps = Array.from(new Set(L.map(o=>displayPersonName(o.name)))).join(', ');
+      const byP = {}; L.forEach(o => { const p = byP[o._pn] = byP[o._pn] || {m:{}, qty:0, rev:0, last:o.date}; p.m[o._mk] = (p.m[o._mk]||0) + o.rev; p.qty += o.qty||0; p.rev += o.rev; if(o.date > p.last) p.last = o.date; });
+      const prods = Object.keys(byP).sort((a,b)=>byP[b].rev-byP[a].rev);
+      const mt = {}; L.forEach(o => { mt[o._mk] = (mt[o._mk]||0) + o.rev; });
+      const tot = L.reduce((s,o)=>s+o.rev,0);
+      return '<div class="panel"><h3 class="section-title"><span>🧑‍🤝‍🧑 ' + escSvg(first.khName||first.khCode) + ' <span style="font-weight:400;color:var(--muted);font-size:12px;">' + escSvg(first.khCode||'') + ' · NV: ' + escSvg(emps) + '</span></span><span class="badge">' + prods.length + ' sản phẩm · ' + fmtMoney(tot) + '</span></h3>' +
+        '<div class="tablewrap"><table><thead><tr><th class="left">Sản phẩm</th>' + mks.map(m=>'<th>'+m+'</th>').join('') + '<th>SL</th><th>Tổng</th><th>Lấy gần nhất</th></tr></thead><tbody>' +
+        prods.map(pn => '<tr><td class="left">'+escSvg(pn)+'</td>' + mks.map(m=>'<td>'+(byP[pn].m[m]?fmtMoney(byP[pn].m[m]):'<span style="color:#cbd5e1;">—</span>')+'</td>').join('') + '<td>'+fmtNum(byP[pn].qty)+'</td><td><b>'+fmtMoney(byP[pn].rev)+'</b></td><td>'+tcDate(byP[pn].last)+'</td></tr>').join('') +
+        '<tr><td class="left"><b>Tổng doanh số tháng</b></td>' + mks.map(m=>'<td><b>'+fmtMoney(mt[m]||0)+'</b></td>').join('') + '<td></td><td><b>' + fmtMoney(tot) + '</b></td><td></td></tr></tbody></table></div></div>';
+    }).join('');
+  }
+  document.getElementById('tcEmp').addEventListener('change', renderTraCuuPage);
+  document.getElementById('tcTabSp').addEventListener('click', () => { tcMode='sp'; document.getElementById('tcInput').value=''; renderTraCuuPage(); });
+  document.getElementById('tcTabKh').addEventListener('click', () => { tcMode='kh'; document.getElementById('tcInput').value=''; renderTraCuuPage(); });
+  document.getElementById('tcInput').addEventListener('input', () => { clearTimeout(tcTimer); tcTimer = setTimeout(renderTraCuuPage, 350); });
 
   // Khớp 1 khách hàng với từ khoá tìm kiếm (theo tên KH, mã KH, hoặc tên nhân viên phụ trách).
   function khSearchMatch(c, term){
