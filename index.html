@@ -502,6 +502,10 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 .navitem{ font-weight:700 !important; }
 .navitem.active{ font-weight:800 !important; }
 .nav-group-label{ font-weight:800 !important; color:#2f4ec4 !important; }
+
+.kpi-mx table th{ font-size:10px !important; line-height:1.2; padding:5px 2px !important; word-break:break-word; white-space:normal !important; }
+.kpi-mx table td{ padding:3px 2px !important; line-height:1.15; font-size:11px; border:1px solid #fff; }
+.kpi-mx table td.left{ font-size:11.5px; white-space:normal; padding-left:6px !important; }
 </style>
 </head>
 <body>
@@ -796,8 +800,8 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 
         <div class="panel">
           <h3 class="section-title">
-            🗺️ Định tuyến ngày <span class="badge" id="routeDateBadge"></span>
-            <span class="badge">Quy định: 15 call/ngày</span>
+            🗺️ <span id="routeTitle">Định tuyến ngày</span> <span class="badge" id="routeDateBadge"></span>
+            <span class="badge" id="routeQuotaBadge">Quy định: 15 call/ngày</span>
             <span class="badge">Kế hoạch: theo Cung tuyến</span>
           </h3>
           <div class="tablewrap">
@@ -806,7 +810,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
                 <tr>
                   <th class="left">Nhân viên</th>
                   <th>Lượt ghé thực tế</th>
-                  <th>/ 15 call</th>
+                  <th id="routeQuotaTh">/ 15 call</th>
                   <th>KH kế hoạch</th>
                   <th>% thực hiện KH</th>
                   <th>KH duy nhất đã ghé</th>
@@ -838,6 +842,12 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
       <div id="page-kpi" class="page-view" style="display:none;">
         <div class="page-h1">Theo dõi <span class="accent">KPI</span></div>
         <div class="page-sub" id="kpiSub"></div>
+
+        <div class="panel" id="kpiMatrixPanel">
+          <h3 class="section-title" id="kpiMatrixTitle">🎯 Rà soát KPI khoán tháng</h3>
+          <div class="legend-note" id="kpiMatrixLegend"></div>
+          <div class="tablewrap" style="overflow-x:visible;"><div id="kpiMatrixWrap" class="kpi-mx"></div></div>
+        </div>
 
         <div class="panel">
           <div class="panel-title-row">
@@ -2750,9 +2760,18 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
     const ordersInMonth = orders.filter(o => inRange(o.date, mStart, mEnd));
     const callsInPeriod = calls.filter(c => inRange(c.date, range.start, range.end));
     const callsInPrevPeriod = calls.filter(c => inRange(c.date, prevRange.start, prevRange.end));
-    const callsToday = calls.filter(c => sameDay(c.date, selectedDate));
-    const ordersToday = orders.filter(o => sameDay(o.date, selectedDate));
-    const routesToday = routes.filter(r => sameDay(r.date, selectedDate));
+    // Định tuyến: theo kỳ đang chọn (ngày/tuần/tháng/quý), cắt đến ngày có dữ liệu mới nhất để không tính ngày chưa tới
+    let _lastD = null; calls.forEach(c => { if(!_lastD || c.date > _lastD) _lastD = c.date; });
+    let _capEnd = range.end; if(_lastD){ const e = new Date(_lastD.getFullYear(), _lastD.getMonth(), _lastD.getDate(), 23,59,59,999); if(e < _capEnd) _capEnd = e; }
+    if(period === 'day') _capEnd = range.end;
+    // Chỉ tiêu call: T2–T6 = 15 call/ngày, T7 (làm buổi sáng) = 8 call, CN = 0
+    let routeQuotaTotal = 0, routeWorkDays = 0, routeSatDays = 0;
+    { const d = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate());
+      while(d <= _capEnd){ const w = d.getDay(); if(w>=1 && w<=5){ routeQuotaTotal += 15; routeWorkDays++; } else if(w===6){ routeQuotaTotal += 8; routeSatDays++; } d.setDate(d.getDate()+1); } }
+    if(routeQuotaTotal < 1){ routeQuotaTotal = 15; routeWorkDays = 1; }
+    const callsToday = calls.filter(c => inRange(c.date, range.start, _capEnd));
+    const ordersToday = orders.filter(o => inRange(o.date, range.start, _capEnd));
+    const routesToday = routes.filter(r => inRange(r.date, range.start, _capEnd));
 
     let lastDataDate = null;
     [...orders.map(o=>o.date), ...calls.map(c=>c.date)].forEach(d => { if(!lastDataDate || d > lastDataDate) lastDataDate = d; });
@@ -3017,7 +3036,11 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 
     document.getElementById('empPeriodBadge').textContent = range.label;
     document.getElementById('prodPeriodBadge').textContent = range.label;
-    document.getElementById('routeDateBadge').textContent = fmtDate(selectedDate);
+    document.getElementById('routeDateBadge').textContent = period === 'day' ? fmtDate(selectedDate) : range.label;
+    const _pt = {day:'ngày', week:'tuần', month:'tháng', quarter:'quý'}[period] || 'kỳ';
+    document.getElementById('routeTitle').textContent = 'Định tuyến ' + _pt;
+    document.getElementById('routeQuotaBadge').textContent = 'Quy định: T2–T6 15 call/ngày, T7 8 call' + (period === 'day' ? ' (ngày này: ' + routeQuotaTotal + ' call)' : ' · kỳ này: ' + routeWorkDays + ' ngày × 15' + (routeSatDays ? ' + ' + routeSatDays + ' T7 × 8' : '') + ' = ' + routeQuotaTotal + ' call');
+    document.getElementById('routeQuotaTh').textContent = '/ ' + routeQuotaTotal + ' call';
 
     // ===== biểu đồ: doanh thu & số đơn theo ngày + doanh thu theo khu vực =====
     // Vẽ bằng SVG thuần (không phụ thuộc thư viện ngoài) để luôn hiển thị được,
@@ -3098,7 +3121,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
     // ---- route table (visits vs 15-call quota + planned Cung tuyến, always for selectedDate) ----
     const routeBody = document.querySelector('#routeTable tbody');
     routeBody.innerHTML = '';
-    const QUOTA = 15;
+    const QUOTA = routeQuotaTotal;
     const hasPlanData = routes.length > 0;
     const routeRows = allEmployeeNames.map(name => {
       const visits = callsToday.filter(c=>c.name===name).length;
@@ -3844,6 +3867,59 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
     return item.unit==='doanh số' ? fmtMoney(val) : fmtNum(val);
   }
 
+
+  // ===== fix19: Bảng tổng hợp KPI khoán (ma trận nhân viên × hạng mục) =====
+  function kpiShort(v, money){
+    if(v===null || v===undefined) return '—';
+    const f = (x, d) => x.toFixed(d).replace('.', ',');
+    const a = Math.abs(v);
+    if(money){ if(a >= 1e9) return f(v/1e9,2)+'tỷ'; if(a >= 1e6) return f(v/1e6,1)+'tr'; if(a >= 1e3) return f(v/1e3,0)+'k'; return String(Math.round(v)); }
+    if(a >= 1e4) return f(v/1e3,0)+'k'; if(a >= 1e3) return f(v/1e3,1)+'k';
+    return String(Math.round(v*10)/10).replace('.', ',');
+  }
+  function renderKpiMatrix(entries, mStart, mEnd){
+    const wrap = document.getElementById('kpiMatrixWrap'); if(!wrap) return;
+    if(!entries.length){ wrap.innerHTML = '<div class="attn-empty">Chưa có dữ liệu KPI.</div>'; return; }
+    const today = new Date(); let ref = today < mStart ? mStart : (today > mEnd ? mEnd : today);
+    const daysIn = mEnd.getDate(), progress = ref.getDate() / daysIn * 100;
+    document.getElementById('kpiMatrixTitle').textContent = '🎯 Rà soát KPI khoán tháng ' + (mStart.getMonth()+1) + '/' + mStart.getFullYear() + ' — lũy kế đến ' + String(ref.getDate()).padStart(2,'0') + '/' + String(ref.getMonth()+1).padStart(2,'0') + ' (tiến độ thời gian ' + progress.toFixed(1).replace('.', ',') + '%)';
+    document.getElementById('kpiMatrixLegend').innerHTML = 'Mỗi ô: % đạt và thực đạt/chỉ tiêu. Màu: <b style="color:#15803d">xanh ≥100%</b> · <b style="color:#c2570c">cam 50–99%</b> · <b style="color:#be123c">đỏ &lt;50%</b> · <b style="color:#9f1239">đỏ đậm = chưa bán được</b>. Điểm bán = số khách mua trong tháng; sản lượng = số đơn vị bán. Mục nhập tay chưa nhập hiển thị "—".';
+    // gộp 1 dòng / nhân viên (nếu 1 người có nhiều dòng thì lấy dòng đầu — đã khử trùng ở trên)
+    const keyOf = it => (it.unit==='doanh số' ? 'DS' : (it.section||'') + '|' + (it.product||'') + '|' + (it.unit||''));
+    const cols = []; const colMap = {};
+    entries.forEach(e => e.items.forEach(it => { const k = keyOf(it); if(!colMap[k]){ colMap[k] = {key:k, it, idx:cols.length}; cols.push(colMap[k]); } }));
+    cols.sort((a,b) => (a.key==='DS' ? -1 : 0) - (b.key==='DS' ? -1 : 0));
+    const bg = (pct, actual, target) => (target>0 && actual===0) ? '#f4a3ab' : pct===null ? '#f1f5f9' : pct>=100 ? '#c9f0dc' : pct>=50 ? '#fbe3c0' : '#fbd3dc';
+    const fg = (pct, actual, target) => (target>0 && actual===0) ? '#7f1d1d' : pct===null ? '#64748b' : pct>=100 ? '#166534' : pct>=50 ? '#9a4a06' : '#9f1239';
+    const cell = (agg, it) => {
+      if(!agg) return '<td style="background:#f8fafc;color:#94a3b8;font-size:9.5px;">—</td>';
+      const isM = it.unit==='doanh số';
+      if(agg.actual===null) return '<td style="background:#f1f5f9;color:#64748b;"><div>—</div><div style="font-size:9.5px;">/' + kpiShort(agg.target, isM) + '</div></td>';
+      const pct = agg.target ? agg.actual/agg.target*100 : null;
+      return '<td style="background:' + bg(pct,agg.actual,agg.target) + ';color:' + fg(pct,agg.actual,agg.target) + ';"><div style="font-weight:800;font-size:12px;">' + (pct===null?'—':Math.round(pct)+'%') + '</div><div style="font-size:9.5px;opacity:.85;">' + kpiShort(agg.actual,isM) + '/' + kpiShort(agg.target,isM) + '</div></td>';
+    };
+    const head = '<tr><th class="left" style="width:110px;">Nhân viên</th><th style="width:48px;">&lt;50%</th>' +
+      cols.map(c => '<th>' + escSvg(c.it.unit==='doanh số' ? 'Doanh số' : (c.it.product || c.it.section)) + '<br><span style="font-weight:500;font-size:10.5px;">' + escSvg(c.it.unit==='doanh số' ? '' : (c.it.unit || '')) + '</span></th>').join('') + '</tr>';
+    // dòng tổng team
+    const teamAgg = {}; entries.forEach(e => e.items.forEach(it => { const k = keyOf(it); const a = teamAgg[k] = teamAgg[k] || {actual:0, target:0, any:false};
+      a.target += it.target||0; if(it.actual!==null && it.actual!==undefined){ a.actual += it.actual; a.any = true; } }));
+    const teamRow = '<tr style="font-weight:700;"><td class="left" style="background:#eef2ff;"><b>TỔNG TEAM</b></td><td style="background:#eef2ff;">—</td>' +
+      cols.map(c => { const a = teamAgg[c.key]; return cell(a ? {actual:a.any?a.actual:null, target:a.target} : null, c.it); }).join('') + '</tr>';
+    const dsKey = 'DS';
+    const rows = entries.slice().sort((a,b) => {
+      const pa = (a.items.find(i=>keyOf(i)===dsKey)||{}).pct, pb = (b.items.find(i=>keyOf(i)===dsKey)||{}).pct;
+      return (pb===null||pb===undefined ? -1 : pb) - (pa===null||pa===undefined ? -1 : pa);
+    }).map(e => {
+      const m = {}; e.items.forEach(it => { m[keyOf(it)] = it; });
+      const total = e.items.length;
+      const low = e.items.filter(it => it.pct!==null && it.pct < 50).length;
+      return '<tr><td class="left" style="font-weight:700;color:#1d4ed8;">' + escSvg(displayPersonName(e.name)) + '</td>' +
+        '<td style="background:' + (low===0 ? '#c9f0dc' : low<=3 ? '#fbe3c0' : '#fbd3dc') + ';"><div style="font-weight:800;font-size:12px;">' + low + '</div><div style="font-size:9.5px;opacity:.8;">/' + total + '</div></td>' +
+        cols.map(c => { const it = m[c.key]; return cell(it ? {actual:it.actual, target:it.target} : null, c.it); }).join('') + '</tr>';
+    }).join('');
+    wrap.innerHTML = '<table style="text-align:center;width:100%;table-layout:fixed;"><thead>' + head + '</thead><tbody>' + teamRow + rows + '</tbody></table>';
+  }
+
   function renderKpiPage(){
     syncKpiRows();
     const mStart = startOfMonth(selectedDate), mEnd = endOfMonth(selectedDate), mKey = monthKey(selectedDate);
@@ -3886,6 +3962,8 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
       const ap = a.avgPct===null ? 999 : a.avgPct, bp = b.avgPct===null ? 999 : b.avgPct;
       return ap - bp;
     });
+
+    renderKpiMatrix(entries, mStart, mEnd);
 
     // ===== 4 thẻ tổng quan =====
     const distinctPeople = new Set(entries.map(e=>e.name)).size;
