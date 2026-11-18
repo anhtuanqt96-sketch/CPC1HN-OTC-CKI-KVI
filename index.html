@@ -506,6 +506,35 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 .kpi-mx table th{ font-size:10px !important; line-height:1.2; padding:5px 2px !important; word-break:break-word; white-space:normal !important; }
 .kpi-mx table td{ padding:3px 2px !important; line-height:1.15; font-size:11px; border:1px solid #fff; }
 .kpi-mx table td.left{ font-size:11.5px; white-space:normal; padding-left:6px !important; }
+
+/* ===== fix20: giao diện điện thoại ===== */
+@media (max-width:820px){
+  html,body{ overflow-x:hidden; }
+  #mobMenuBtn{ display:inline-block !important; }
+  .sidebar, .sidebar.collapsed{ position:fixed !important; left:-290px; top:0; width:270px !important; height:100vh; z-index:1000; transition:left .2s ease; box-shadow:4px 0 20px rgba(0,0,0,.15); }
+  .sidebar.collapsed .hide-on-collapse{ display:inline !important; }
+  .sidebar.open{ left:0; }
+  #sidebarCollapse{ display:none !important; }
+  .main-col{ width:100%; }
+  .topbar{ flex-wrap:wrap; gap:8px; padding:10px 12px !important; align-items:center; }
+  .topbar-title{ font-size:18px !important; flex:1; }
+  .topbar-right{ width:100%; gap:8px; justify-content:space-between; }
+  .controls{ gap:8px !important; width:100%; }
+  .controls .field{ flex:1 1 140px; min-width:0; }
+  .controls input, .controls select{ max-width:100%; }
+  #periodTabs{ display:flex; flex-wrap:wrap; }
+  .content, .page-view, #dashboard{ padding-left:10px !important; padding-right:10px !important; }
+  .panel{ padding:12px !important; }
+  .kpi-grid, #kpiGrid, .compare-grid, .prod-grid, .charts-row, .split-row{ grid-template-columns:1fr !important; }
+  .kpi-grid .kpi-card{ padding:14px; }
+  .page-h1{ font-size:22px !important; }
+  .tablewrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  th, td{ padding:8px 7px; font-size:12px; }
+  .kpi-mx table{ min-width:760px; table-layout:auto !important; }
+  .kpi-emp-summary{ flex-wrap:wrap; }
+  .panel-title-row{ gap:6px; }
+  h3.section-title{ font-size:14px; }
+}
 </style>
 </head>
 <body>
@@ -542,6 +571,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 
 <div class="app-shell">
 
+  <div id="mobBackdrop" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:999;"></div>
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-logo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEcBAMAAACVFXRlAAAACXBIWXMAACxKAAAsSgF3enRNAAAALVBMVEVHcEy3ICaOKjwARHS3ICa3ICa3ICa3ICYARHQARHQARHQARHS3ICa3ICYARHQk+PuwAAAADXRSTlMAxBWCPHCa8Lc84mLg/HnEIQAADUNJREFUeNrVnc9r21gewGVF8sZ1B5owmZvAZppmN9MMYXvZ2UNwS9tcxpCUZnsZQ1pSehlDW9qe1hCml50plMBeNrNQysyly4IJu5dOD6U7TOdmqItjXyIozcV1QH/DRJZk6T1935Pe05Oe9l3qKpLeR9/3fd9f78lWFDFtU8lXK/ZzBtQw13LFo7XMXq6AzprmoJYnIMM0zdkc8ejHPGY3R0B1G8jMz8xXW2Og/dwAVU2n5Uatmy7Q3Typ9FitK3lS6fyotavS+VHrgum3Wp5U2m738uBXAzzmQQ7UejUIZJ6Sr9IGAiQ/TiuaaJMepzUwoF6eVNpuA8lqvYADmT/LDxXNHKl10Qy3zTyptGyHprUAIJnpx1kTanfzpNJy0w/dhJs0ta4TgGSptdoiAMmK06okHllxWpMIJCf90E1yO5UnlZbl0NQOBUhGnFag8ciI05pUoOyttUblkWAbC3kDKpo50yE9b0AROvQmezNEB3qV/bSnA0nwHQYVaDNvQBJcR4MKJCFEq/9/AUkIPz6i8QwkABXy5exzCKTny9lHOLPcAUmpNNKA3uan9CEr+ogAkpIoNqKAMsynb0QBjZ39zewC/P0oZzYGamUVFKlGN8qZ1cZ2IasMv2qatnqcjADSs4ob7QWpWoQzUxzgbES06obMFGd2YJ+3lNEGlXGx/DYdqOvNwixKadc8X6VF1KvG5ZH0RaT7PUY4+1Y2q8INX0k6VGevZVOQ9YoeFaoz6/kqlvZSTDNgihtUZ38yk5p1Neg9yUC33Vmfuoj8Rfq3VGeG4O5nIaBxL0vUUkMzgzw/sIBoz/vfUZ19Fpt4VtHUtEAD0jIohegt1J8Xac5ez2ChoYGpCdmZVbDgZDNFpxEoImq06GMp/bWYJm6MVZqzR43UbIpOIzB1WhSgZtoretjGpbF7NSjOHoOdTdEm+orbJANpaS96qgZgaxpkZx+agR+nZxP9qVwnlxpOprwjBNh18pbszN5AfxIbhlwDx+Uj8kJHI91NMzocyBfI0Qeg7/dTLnQMyM5sEzZR4nysRvCgOtHZQ1cMBIYhBiwHjejs9ZRXZBZgTVGJQCdTXgDRCNaG6OyX0q4VE3bjGaSFjkbahceTsE9vkpw99Aehm1LBzVQVgjPrw7NebDG9AU6aOsHZa+mvesJ7TElAevoLRNBuodsEZ9YDVU70dss61HGBEH0sZbAKq0PKWyBEH/UsFqwMoLSpE5x9M4vVD8B91DQCUCddI+SsogCdr8FA0GGhRqg4CySKjihgIJ1khP4iKGV1cpgqMJ1AZ1YrEIyQLibJL7oBejjQ34eBKksEI9QUk+Q3vQC9EZ73oDMDZv34+jNiMtjiJIcpxOnaHp4mWNkf55oCMtjx3QdroMuvwUAd0AhVxST5xYChDXW/CTmzPvx6jquCiUUUrJSHpvMryIvu66ARWhVTBykiaoCPRQ9yZuGDyOpaQhE1kbvi7qMPObPeEmn1TICIquhMwfvvQkBv6oARCgR43QSBCFIVmgXcx2looaMZNkLIje4JEZAz+Pi7N2uQs++EjVBVTB0EK5vNhl3+KSCy3QobIa0jplRUDdcJMV/xFnBmG2EjtCqmVBSqK94LuY8e4MzOh2JXXVA1rQoUwTD30QeA6iEj1BBTTQsXXu0nQ7sbAM6sgY9zUdC7OlUw+yxSxWG3Jta12hSTxqoGmJRih2+FnX0H67kqqDRTJRTBUJn8L5wcYUZINcRU0wj36WNTphtOeDDbtQrXkPbFCMieNAZZHkBxWmuJ2QKuGsR9Jgtm/LZPXtzfFyOg40HQGIA2dUG75FXyvo5upRmbh3puX4yAjkVUiA10r0oVnxABHT/2hVZcoCu0+7CIqEp/7kZMnv6XERomREDHc/l8TKBfIkTZFyMg07zfiQcUqf1xRWQk7olgxXlFdCbqRgemkDa4EnfMzpuZtCvxp9mXWfDcSLjqK5UHDvMk8kTaosSNPcPXOmnysOy80NZnZj65WkF3eKXAc3FjY+NqjNqM5oxVdyvaHCXhueR2cyMmj21G19IyR78o6tdxlTs4uwZbX6XC81qZN2JHjqhfnWukwnO5hdcwYm/LeSB+8r9Wv2KwAKEk6o7oqXZfNxhWY4EkSjDQ/cstlrBoNW1/8WAdOtpjEJDYdscg5LecoWvWji1tf0oJdmGggimtrUUsI2TeenG34mXVwFX0ukQgaJ+B2pIJ1M/RnHdaLU8qbbe7IlX6zs2rF4/bpfUEhiz03he3Sg/mLvh3Ob3OTbQpSKXnsMHXrnPeaF+Ile4C6fk8X/6EeVg+lX4ARp8a381mo/cDR0fHBC99LbEpWhDJw0sU9LAdoTycRD36tsnIWVERXT0JmCIOIxS1Y4KnVnEqgREaRK5U6AlMEYcR+jiVsmCNshU4eT2XI0T/mdsIxVpaYh+0O86FZ5kvjLnK3eB8UGbRxt1ww5549vhGLHbBcpXLFC2INkEJRDQ4xTNiDBXdVQ5TpKcnIB4tqrG7DaaNJHV2U8RaamXbasMs/y1FOdNhHWW+fYfxQ2KNSa0Zt0Qz+clfXfVUGerRrO+LMEQSgy3/ssuxL2N+XyS2WveRDEY3mLxNwpd4wAQPsyYxh439DR+1wzpck2FLZcTijVkftCXzRgojFmuezRGMv3Yr0hvzbD+MmjAHlOXydbFWMVac9oBq+iMqBVyvHC0kShfolQKuLaM6Y/kEH/J1sSpEVaJfY4UyZLPN+dZag8H4wDImzf9XfEBLhOGKb0NIZntNtYubF8R4jzmm9yno3nbmJhMUlNccbDE+VZTZ/uRKIiXqs89X9RanvYeUEpf3a67XX6KibYY3RrBbzXG+tRBV4D2IP02usRlDojZGDNtBbBn55nYwV1EStMuGqKRxfsZZFqkpyZp66XpHVNZ48aIipp2+tLE+M9MSFbGJa+rFS9d5inupNm29lShxTB8pD7+dqH0dFbQV+FIm/hb0dHdJJYZMv8Y7sKutS3LvGX+v+GXKmC3IAFLmW8Q4siMFSNE7hHlWNOUAeURdQjYv4bvp3cCrBpdeZXxZ/jxkrKumPCCn81dwnVPOT8/ZoeBbOHOWA2Qv0+3DywmSfpxPx0IQfyFR1q8FrqI9F03ZQKoxgJNCab+nWDThtFneDzyeD3w+mwegYDNyBqSbOQOq5wwIWUfIA1DBFA2k7u7uxD/7D7u7lMqUAKB/fmcdt+EX/pHSObf9tIvXFdTnbfvshzugEfKA1PHV3h2de9mf/m5/2EN6WQ5J54Xlth8nnU9Zfnu4Fzz7s7Z7ePQNFtwjQKXxOYfuCc4V9qcV+8MHpJd3OM+f/b6HFQDIGgWIptr+8W8wI/TXuEAjKtCLYN//hoCs0WR4Su3g8WXECHWrcYG8C8sQ0DTStffUKJD1L+/sFeSwK1DXCHlvd8cAeu8+HgCkttGuRxUIyBPR7y0A1F3TmHzFXgygIRnoBNaF9QME5B5VMHoHVN8YtzUGIGuPBIQLyBsGHMh5pEULxkfNYxygH0hA06EurG0IyBqP2ePQySNOoEMS0EoY6AgE2p5MCrQt8wE5DxgGKnn3fbS7+7wdODcEZM+LJ974/bTr2PaAjWMFegoDeSr9R/s/n7Z9YUx5n0rP/Y7dETusBMz7iBPoCAZ6iZiZ7/1zp3x1WvRuXUJMgDcd9viArAoI1A7aHq+PEQpU8qbZNDqxFgOy5wDahoDK2Nz9fqJEASBnpIYTFaqgFuOIE+gDBDQd0PjA3FpGgVZcoBVMi18ifbICjSCgE0E77g/hUxioHTgWmBGcQPZjh4CeBD2d/9DvQSAVE6c34DsUoKEb5kFAx72oONBL7JkDYU/gL20HqBw2zXBk3UUsXKChQENPcu9wO71HB5pyhT+Fqww/0GHb7RcHeozJHAJSV9zJNB2yzPxAL93JDQMpRKAfj4e/7Y24SKBpV9isQIhznQYDYD6gkjs0CYB2hAI5/zxNADTxHO/FAC06egkDVWIAfVCE6pD75woMtBcDaOJNjsQAOV1vw3ZoORpoODk0FAQ0HrMPsKV+Gg20POliVGEBIviyQ7eDEQ70OT4KK6gvQ9MvPCArW5gKxgYaIglDyNuP8KToKQb0KKhxfuKziDs3JqAnENAUljlMT4TgAz17+B9kgIeYOA85gaYgINVCx+zlZBCmgDjgc3TMyhZumJiA/BQ1aGsfI32U8Sm1DZUljtB4d5sTyB+zd+GHPkQE9J4ApCK5YdnC4zNGoGkIaCpYFnphAXkZkOaO61flx1bILrEBTcbsHVRreHbu3HfBggwINKmUPDz3p7YVUiFGoEnwiPjrJ9TcHgMqtcNn7/EDTUNAZUL5AATylCxUpuEDKkFA4fLHUCEDleHaDSeQ1/e7qNCQDBQS0WElCdAJCAjv41ChAZXbFAExA5VAIFRTvZI0AcizhlgRmRPItct4VPwpUBUmAqkrFlBm5wVahMP0f/hdfKtEACmqHzYMd5SEQGVC3uCVzkbfKpFA/krEsx0lKZAzZkAiU/rvsZkePoq5QPWZbab/9oXgJbffABWgVY7EFfydAAAAAElFTkSuQmCC" alt="CPC1HN"></div>
@@ -588,6 +618,7 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
 
   <div class="main-col">
     <div class="topbar">
+      <button id="mobMenuBtn" aria-label="Menu" style="display:none;border:1px solid var(--border);background:#fff;border-radius:10px;font-size:20px;padding:4px 11px;cursor:pointer;">☰</button>
       <div class="topbar-title" id="topbarTitle">Tổng quan</div>
       <div class="topbar-right">
         <div class="controls" id="periodControls">
@@ -1572,6 +1603,13 @@ details.kpi-emp-details:nth-of-type(3n) .kpi-emp-summary{ background:linear-grad
   }
 
   // ---------- sidebar collapse (cosmetic) ----------
+  (function(){
+    const sb = document.getElementById('sidebar'), bd = document.getElementById('mobBackdrop');
+    const close = () => { sb.classList.remove('open'); bd.style.display = 'none'; };
+    document.getElementById('mobMenuBtn').addEventListener('click', () => { const o = sb.classList.toggle('open'); bd.style.display = o ? 'block' : 'none'; });
+    bd.addEventListener('click', close);
+    sb.addEventListener('click', e => { if(e.target.closest('.navitem')) close(); });
+  })();
   document.getElementById('sidebarCollapse').addEventListener('click', function(){
     const sb = document.getElementById('sidebar');
     const collapsed = sb.classList.toggle('collapsed');
